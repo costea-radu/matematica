@@ -1,0 +1,1815 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mate - Platformă Educațională de Matematică</title>
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Stripe -->
+    <script src="https://js.stripe.com/v3/"></script>
+    
+    <!-- Jitsi Meet API -->
+    <script src="https://meet.jit.si/external_api.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --light: #f3f4f6;
+            --white: #ffffff;
+            --shadow: 0 10px 30px rgba(0,0,0,0.1);
+            --radius: 12px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            animation: slideDown 0.5s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -2px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-link {
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: width 0.3s;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--secondary) 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Main Content */
+        main {
+            padding: 2rem 0;
+            min-height: calc(100vh - 200px);
+        }
+
+        .content-wrapper {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            animation: fadeIn 0.8s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 4rem 0;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-radius: var(--radius);
+            margin-bottom: 3rem;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--dark);
+            margin-bottom: 2rem;
+        }
+
+        /* Section Cards */
+        .section-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .section-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .section-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .section-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+        }
+
+        .section-card h3 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .section-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .section-card li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--light);
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            padding-left: 25px;
+        }
+
+        .section-card li::before {
+            content: '📚';
+            position: absolute;
+            left: 0;
+        }
+
+        .section-card li:hover {
+            color: var(--primary);
+            padding-left: 30px;
+        }
+
+        .premium-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--light);
+            border-radius: var(--radius);
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: var(--radius);
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--dark);
+            transition: transform 0.3s;
+        }
+
+        .modal-close:hover {
+            transform: rotate(90deg);
+        }
+
+        /* Admin Panel */
+        .admin-panel {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%);
+            border-radius: var(--radius);
+            padding: 2rem;
+            margin: 2rem 0;
+            border: 2px dashed var(--danger);
+        }
+
+        .admin-controls {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        /* Forum */
+        .forum-post {
+            background: white;
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+        }
+
+        .forum-post:hover {
+            box-shadow: var(--shadow);
+        }
+
+        .forum-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--light);
+        }
+
+        .forum-author {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .forum-date {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        /* Video Container */
+        .video-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .video-container iframe,
+        #jitsi-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: var(--radius);
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 3px solid var(--light);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .nav-links {
+                width: 100%;
+                justify-content: center;
+                margin-top: 1rem;
+            }
+            
+            .section-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .admin-controls {
+                flex-direction: column;
+            }
+        }
+
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            animation: slideInRight 0.3s ease;
+            z-index: 3000;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        .toast.success {
+            border-left: 4px solid var(--secondary);
+        }
+
+        .toast.error {
+            border-left: 4px solid var(--danger);
+        }
+
+        .toast.info {
+            border-left: 4px solid var(--primary);
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: var(--light);
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+
+        /* Tab System */
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            border-bottom: 2px solid var(--light);
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            color: var(--dark);
+            font-weight: 500;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            color: var(--primary);
+        }
+
+        .tab.active {
+            color: var(--primary);
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Pricing Cards */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .pricing-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .pricing-card.featured {
+            border-color: var(--primary);
+            transform: scale(1.05);
+            box-shadow: var(--shadow);
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow);
+        }
+
+        .pricing-card.featured:hover {
+            transform: scale(1.05) translateY(-10px);
+        }
+
+        .pricing-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .pricing-price {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .pricing-price span {
+            font-size: 1rem;
+            color: #6b7280;
+        }
+
+        .pricing-features {
+            list-style: none;
+            padding: 0;
+            margin: 2rem 0;
+        }
+
+        .pricing-features li {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--light);
+        }
+
+        .pricing-features li:last-child {
+            border-bottom: none;
+        }
+
+        /* Exercise Section */
+        .exercise-container {
+            background: var(--light);
+            border-radius: var(--radius);
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .exercise-question {
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+        }
+
+        .exercise-options {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .exercise-option {
+            background: white;
+            padding: 1rem;
+            border-radius: var(--radius);
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .exercise-option:hover {
+            border-color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .exercise-option.selected {
+            background: rgba(37, 99, 235, 0.1);
+            border-color: var(--primary);
+        }
+
+        .exercise-option.correct {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--secondary);
+        }
+
+        .exercise-option.incorrect {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--danger);
+        }
+
+        /* Footer */
+        footer {
+            background: rgba(31, 41, 55, 0.95);
+            color: white;
+            padding: 3rem 0 1rem;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h3 {
+            margin-bottom: 1rem;
+            color: white;
+        }
+
+        .footer-section a {
+            color: #9ca3af;
+            text-decoration: none;
+            display: block;
+            padding: 0.25rem 0;
+            transition: color 0.3s;
+        }
+
+        .footer-section a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid #374151;
+            color: #9ca3af;
+        }
+
+        /* Dark Mode Toggle */
+        .dark-mode-toggle {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: var(--dark);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .dark-mode-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+
+        body.dark-mode .content-wrapper,
+        body.dark-mode .section-card,
+        body.dark-mode .modal-content,
+        body.dark-mode .forum-post,
+        body.dark-mode .pricing-card,
+        body.dark-mode header {
+            background: rgba(31, 41, 55, 0.95);
+            color: white;
+        }
+
+        body.dark-mode .nav-link,
+        body.dark-mode .section-card h3,
+        body.dark-mode .form-label,
+        body.dark-mode .modal-close {
+            color: white;
+        }
+
+        body.dark-mode .form-input {
+            background: #374151;
+            border-color: #4b5563;
+            color: white;
+        }
+
+        body.dark-mode .section-card li {
+            border-color: #374151;
+        }
+
+        body.dark-mode .exercise-container {
+            background: #374151;
+        }
+
+        body.dark-mode .exercise-option {
+            background: #1f2937;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <nav class="container">
+            <div class="logo">Mate</div>
+            <div class="nav-links">
+                <a href="#home" class="nav-link">Acasă</a>
+                <a href="#free" class="nav-link">Gratuit</a>
+                <a href="#premium" class="nav-link">Premium</a>
+                <a href="#forum" class="nav-link">Forum</a>
+                <button class="btn btn-outline" onclick="showLoginModal()">Conectare</button>
+                <button class="btn btn-primary" onclick="showSubscribeModal()">Abonează-te</button>
+                <button id="adminBtn" class="btn btn-danger" style="display:none;" onclick="showAdminPanel()">Admin</button>
+                <button id="logoutBtn" class="btn btn-secondary" style="display:none;" onclick="logout()">Deconectare</button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <div class="content-wrapper">
+            <!-- Hero Section -->
+            <div class="hero">
+                <h1>Învață Matematică cu Mate</h1>
+                <p>Platforma completă pentru excelență în matematică</p>
+                <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                    <button class="btn btn-primary" onclick="showSubscribeModal()">Începe Gratuit</button>
+                    <button class="btn btn-secondary" onclick="showPremiumModal()">Vezi Planuri Premium</button>
+                </div>
+            </div>
+
+            <!-- Tab System -->
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('free')">Secțiune Gratuită</button>
+                <button class="tab" onclick="switchTab('premium')">Secțiune Premium</button>
+                <button class="tab" onclick="switchTab('forum')">Forum</button>
+                <button class="tab" id="adminTab" style="display:none;" onclick="switchTab('admin')">Administrare</button>
+            </div>
+
+            <!-- Free Section -->
+            <div id="free-content" class="tab-content active">
+                <h2>Conținut Gratuit</h2>
+                <div class="section-grid">
+                    <div class="section-card">
+                        <h3>📚 Evaluare Națională</h3>
+                        <ul>
+                            <li onclick="loadContent('free', 'en-lectii')">Lecții</li>
+                            <li onclick="loadContent('free', 'en-exercitii-interactive')">Exerciții Interactive</li>
+                            <li onclick="loadContent('free', 'en-exercitii-pdf')">Exerciții PDF</li>
+                            <li onclick="loadContent('free', 'en-teste-interactive')">Teste Interactive</li>
+                            <li onclick="loadContent('free', 'en-teste-pdf')">Teste PDF</li>
+                        </ul>
+                    </div>
+                    <div class="section-card">
+                        <h3>🎓 Bacalaureat</h3>
+                        <ul>
+                            <li onclick="loadContent('free', 'bac-lectii')">Lecții</li>
+                            <li onclick="loadContent('free', 'bac-exercitii-interactive')">Exerciții Interactive</li>
+                            <li onclick="loadContent('free', 'bac-exercitii-pdf')">Exerciții PDF</li>
+                            <li onclick="loadContent('free', 'bac-teste-interactive')">Teste Interactive</li>
+                            <li onclick="loadContent('free', 'bac-teste-pdf')">Teste PDF</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 3rem;">
+                    <h3>Înregistrează-te gratuit pentru a-ți salva progresul!</h3>
+                    <button class="btn btn-primary" onclick="showSubscribeModal()">Înregistrare Gratuită</button>
+                </div>
+            </div>
+
+            <!-- Premium Section -->
+            <div id="premium-content" class="tab-content">
+                <h2>Conținut Premium <span class="premium-badge">PREMIUM</span></h2>
+                
+                <div class="section-grid">
+                    <div class="section-card">
+                        <h3>📚 Evaluare Națională</h3>
+                        <ul>
+                            <li onclick="loadContent('premium', 'en-lectii')">Lecții Complete</li>
+                            <li onclick="loadContent('premium', 'en-exercitii-interactive')">Exerciții Interactive</li>
+                            <li onclick="loadContent('premium', 'en-exercitii-pdf')">Exerciții PDF</li>
+                            <li onclick="loadContent('premium', 'en-teste-interactive')">Teste Interactive</li>
+                            <li onclick="loadContent('premium', 'en-teste-pdf')">Teste PDF</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="section-card">
+                        <h3>🎓 Bacalaureat</h3>
+                        <ul>
+                            <li onclick="loadContent('premium', 'bac-lectii')">Lecții Complete</li>
+                            <li onclick="loadContent('premium', 'bac-exercitii-interactive')">Exerciții Interactive</li>
+                            <li onclick="loadContent('premium', 'bac-exercitii-pdf')">Exerciții PDF</li>
+                            <li onclick="loadContent('premium', 'bac-teste-interactive')">Teste Interactive</li>
+                            <li onclick="loadContent('premium', 'bac-teste-pdf')">Teste PDF</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3 style="margin-top: 3rem;">Clase Disponibile</h3>
+                <div class="section-grid">
+                    <div class="section-card">
+                        <h3>📖 Clasa a V-a</h3>
+                        <ul>
+                            <li onclick="loadContent('premium', 'clasa5-lectii')">Lecții</li>
+                            <li onclick="loadContent('premium', 'clasa5-exercitii')">Exerciții</li>
+                            <li onclick="loadContent('premium', 'clasa5-teste')">Teste</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="section-card">
+                        <h3>📖 Clasa a VI-a</h3>
+                        <ul>
+                            <li onclick="loadContent('premium', 'clasa6-lectii')">Lecții</li>
+                            <li onclick="loadContent('premium', 'clasa6-exercitii')">Exerciții</li>
+                            <li onclick="loadContent('premium', 'clasa6-teste')">Teste</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="section-card">
+                        <h3>📖 Clasa a VII-a</h3>
+                        <ul>
+                            <li onclick="loadContent('premium', 'clasa7-lectii')">Lecții</li>
+                            <li onclick="loadContent('premium', 'clasa7-exercitii')">Exerciții</li>
+                            <li onclick="loadContent('premium', 'clasa7-teste')">Teste</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="section-card">
+                        <h3>📖 Clasa a VIII-a</h3>
+                        <ul>
+                            <li onclick="loadContent('premium', 'clasa8-lectii')">Lecții</li>
+                            <li onclick="loadContent('premium', 'clasa8-exercitii')">Exerciții</li>
+                            <li onclick="loadContent('premium', 'clasa8-teste')">Teste</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="section-card">
+                        <h3>📖 Clasa a IX-a</h3>
+                        <ul>
+                            <li onclick="loadContent('premium', 'clasa9-lectii')">Lecții</li>
+                            <li onclick="loadContent('premium', 'clasa9-exercitii')">Exerciții</li>
+                            <li onclick="loadContent('premium', 'clasa9-teste')">Teste</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="section-card">
+                        <h3>📖 Clasa a X-a</h3>
+                        <ul>
+                            <li onclick="loadContent('premium', 'clasa10-lectii')">Lecții</li>
+                            <li onclick="loadContent('premium', 'clasa10-exercitii')">Exerciții</li>
+                            <li onclick="loadContent('premium', 'clasa10-teste')">Teste</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="section-card">
+                        <h3>📖 Clasa a XI-a</h3>
+                        <ul>
+                            <li onclick="loadContent('premium', 'clasa11-lectii')">Lecții</li>
+                            <li onclick="loadContent('premium', 'clasa11-exercitii')">Exerciții</li>
+                            <li onclick="loadContent('premium', 'clasa11-teste')">Teste</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="section-card">
+                        <h3>📖 Clasa a XII-a</h3>
+                        <ul>
+                            <li onclick="loadContent('premium', 'clasa12-lectii')">Lecții</li>
+                            <li onclick="loadContent('premium', 'clasa12-exercitii')">Exerciții</li>
+                            <li onclick="loadContent('premium', 'clasa12-teste')">Teste</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 3rem;">
+                    <button class="btn btn-primary" onclick="showPremiumModal()">Activează Premium</button>
+                    <button class="btn btn-secondary" onclick="startLiveSession()">Lecție Video Live</button>
+                </div>
+            </div>
+
+            <!-- Forum Section -->
+            <div id="forum-content" class="tab-content">
+                <h2>Forum Comunitate</h2>
+                
+                <button class="btn btn-primary" onclick="showNewPostModal()">Postare Nouă</button>
+                
+                <div id="forum-posts" style="margin-top: 2rem;">
+                    <div class="forum-post">
+                        <div class="forum-header">
+                            <span class="forum-author">Elev123</span>
+                            <span class="forum-date">Acum 2 ore</span>
+                        </div>
+                        <h4>Ajutor la ecuații de gradul 2</h4>
+                        <p>Poate cineva să-mi explice cum se rezolvă ecuațiile de gradul 2? Am încercat formula dar nu înțeleg...</p>
+                    </div>
+                    
+                    <div class="forum-post">
+                        <div class="forum-header">
+                            <span class="forum-author">ProfesorMate</span>
+                            <span class="forum-date">Acum 5 ore</span>
+                        </div>
+                        <h4>Resurse pentru Evaluare Națională</h4>
+                        <p>Am adăugat noi teste de antrenament în secțiunea gratuită. Verificați!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Section -->
+            <div id="admin-content" class="tab-content">
+                <div class="admin-panel">
+                    <h2>🔧 Panou Administrare</h2>
+                    <p>Doar administratorii pot vedea această secțiune.</p>
+                    
+                    <div class="admin-controls">
+                        <button class="btn btn-primary" onclick="addNewPage()">➕ Adaugă Pagină HTML</button>
+                        <button class="btn btn-secondary" onclick="addNewLink()">🔗 Adaugă Link</button>
+                        <button class="btn btn-danger" onclick="manageUsers()">👥 Gestionează Utilizatori</button>
+                        <button class="btn btn-primary" onclick="viewStatistics()">📊 Statistici</button>
+                    </div>
+                    
+                    <div style="margin-top: 2rem;">
+                        <h3>Adaugă Conținut Nou</h3>
+                        <div class="form-group">
+                            <label class="form-label">URL GitHub (pagină HTML):</label>
+                            <input type="text" class="form-input" id="githubUrl" placeholder="https://raw.githubusercontent.com/username/mate/main/page.html">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Secțiune:</label>
+                            <select class="form-input" id="contentSection">
+                                <option value="free">Gratuit</option>
+                                <option value="premium">Premium</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Categorie:</label>
+                            <input type="text" class="form-input" id="contentCategory" placeholder="ex: clasa5-lectii">
+                        </div>
+                        <button class="btn btn-primary" onclick="saveContent()">Salvează Conținut</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Content Area -->
+            <div id="dynamic-content" style="margin-top: 2rem;"></div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Mate</h3>
+                    <p>Platforma ta de învățare matematică</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Link-uri Rapide</h3>
+                    <a href="#home">Acasă</a>
+                    <a href="#free">Conținut Gratuit</a>
+                    <a href="#premium">Premium</a>
+                    <a href="#forum">Forum</a>
+                </div>
+                <div class="footer-section">
+                    <h3>Contact</h3>
+                    <a href="mailto:contact@mate.ro">contact@mate.ro</a>
+                    <a href="tel:+40700000000">0700 000 000</a>
+                </div>
+                <div class="footer-section">
+                    <h3>Legal</h3>
+                    <a href="#terms">Termeni și Condiții</a>
+                    <a href="#privacy">Politica de Confidențialitate</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Mate. Toate drepturile rezervate.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Conectare</h2>
+                <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
+            </div>
+            <form onsubmit="login(event)">
+                <div class="form-group">
+                    <label class="form-label">Email:</label>
+                    <input type="email" class="form-input" id="loginEmail" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Parolă:</label>
+                    <input type="password" class="form-input" id="loginPassword" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Conectare</button>
+            </form>
+            <p style="text-align: center; margin-top: 1rem;">
+                Nu ai cont? <a href="#" onclick="showSubscribeModal(); closeModal('loginModal');">Înregistrează-te</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Subscribe Modal -->
+    <div id="subscribeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Înregistrare</h2>
+                <button class="modal-close" onclick="closeModal('subscribeModal')">✕</button>
+            </div>
+            <form onsubmit="subscribe(event)">
+                <div class="form-group">
+                    <label class="form-label">Nume:</label>
+                    <input type="text" class="form-input" id="subscribeName" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email:</label>
+                    <input type="email" class="form-input" id="subscribeEmail" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Parolă:</label>
+                    <input type="password" class="form-input" id="subscribePassword" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tip cont:</label>
+                    <select class="form-input" id="accountType">
+                        <option value="free">Gratuit</option>
+                        <option value="premium">Premium</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Înregistrează-te</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Premium Modal -->
+    <div id="premiumModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Planuri Premium</h2>
+                <button class="modal-close" onclick="closeModal('premiumModal')">✕</button>
+            </div>
+            
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3 class="pricing-title">Lunar</h3>
+                    <div class="pricing-price">49 RON<span>/lună</span></div>
+                    <ul class="pricing-features">
+                        <li>✓ Acces complet la toate lecțiile</li>
+                        <li>✓ Exerciții interactive nelimitate</li>
+                        <li>✓ Teste cu evaluare automată</li>
+                        <li>✓ Forum premium</li>
+                    </ul>
+                    <button class="btn btn-primary" onclick="startCheckout('monthly')">Alege Plan</button>
+                </div>
+                
+                <div class="pricing-card featured">
+                    <h3 class="pricing-title">Anual</h3>
+                    <div class="pricing-price">399 RON<span>/an</span></div>
+                    <ul class="pricing-features">
+                        <li>✓ Toate beneficiile planului lunar</li>
+                        <li>✓ Economisești 33%</li>
+                        <li>✓ Lecții video LIVE gratuite</li>
+                        <li>✓ Suport prioritar</li>
+                    </ul>
+                    <button class="btn btn-primary" onclick="startCheckout('yearly')">Cel Mai Popular</button>
+                </div>
+                
+                <div class="pricing-card">
+                    <h3 class="pricing-title">Lecție Live</h3>
+                    <div class="pricing-price">99 RON<span>/sesiune</span></div>
+                    <ul class="pricing-features">
+                        <li>✓ 60 minute 1-la-1</li>
+                        <li>✓ Profesor experimentat</li>
+                        <li>✓ Material personalizat</li>
+                        <li>✓ Înregistrare disponibilă</li>
+                    </ul>
+                    <button class="btn btn-secondary" onclick="bookLiveSession()">Rezervă Acum</button>
+                </div>
+            </div>
+            
+            <div id="cancelSubscription" style="display:none; margin-top: 2rem; text-align: center;">
+                <button class="btn btn-danger" onclick="cancelSubscription()">Anulează Abonamentul</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Post Modal -->
+    <div id="newPostModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Postare Nouă</h2>
+                <button class="modal-close" onclick="closeModal('newPostModal')">✕</button>
+            </div>
+            <form onsubmit="createPost(event)">
+                <div class="form-group">
+                    <label class="form-label">Titlu:</label>
+                    <input type="text" class="form-input" id="postTitle" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Conținut:</label>
+                    <textarea class="form-input" id="postContent" rows="5" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Postează</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Jitsi Container -->
+    <div id="jitsi-container" style="display:none;"></div>
+
+    <!-- Dark Mode Toggle -->
+    <button class="dark-mode-toggle" onclick="toggleDarkMode()">🌙</button>
+
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Stripe Configuration
+        const STRIPE_PUBLIC_KEY = 'YOUR_STRIPE_PUBLIC_KEY';
+        const stripe = Stripe(STRIPE_PUBLIC_KEY);
+
+        // Current user state
+        let currentUser = null;
+        let isAdmin = false;
+
+        // Initialize app
+        async function initApp() {
+            // Check if user is logged in
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                currentUser = user;
+                await checkUserRole();
+                updateUI();
+            }
+            
+            // Listen for auth changes
+            supabase.auth.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_IN') {
+                    currentUser = session.user;
+                    checkUserRole();
+                    updateUI();
+                } else if (event === 'SIGNED_OUT') {
+                    currentUser = null;
+                    isAdmin = false;
+                    updateUI();
+                }
+            });
+        }
+
+        // Check user role
+        async function checkUserRole() {
+            if (!currentUser) return;
+            
+            const { data, error } = await supabase
+                .from('users')
+                .select('role')
+                .eq('id', currentUser.id)
+                .single();
+            
+            if (data && data.role === 'admin') {
+                isAdmin = true;
+            }
+        }
+
+        // Update UI based on user state
+        function updateUI() {
+            const adminBtn = document.getElementById('adminBtn');
+            const adminTab = document.getElementById('adminTab');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const cancelBtn = document.getElementById('cancelSubscription');
+            
+            if (currentUser) {
+                logoutBtn.style.display = 'inline-block';
+                
+                if (isAdmin) {
+                    adminBtn.style.display = 'inline-block';
+                    adminTab.style.display = 'inline-block';
+                }
+                
+                // Check if user has premium subscription
+                checkSubscription();
+            } else {
+                logoutBtn.style.display = 'none';
+                adminBtn.style.display = 'none';
+                adminTab.style.display = 'none';
+            }
+        }
+
+        // Check subscription status
+        async function checkSubscription() {
+            if (!currentUser) return;
+            
+            const { data, error } = await supabase
+                .from('subscriptions')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .eq('status', 'active')
+                .single();
+            
+            if (data) {
+                document.getElementById('cancelSubscription').style.display = 'block';
+            }
+        }
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Remove active class from all tabs and contents
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Add active class to selected tab and content
+            event.target.classList.add('active');
+            document.getElementById(`${tabName}-content`).classList.add('active');
+        }
+
+        // Modal functions
+        function showLoginModal() {
+            document.getElementById('loginModal').classList.add('active');
+        }
+
+        function showSubscribeModal() {
+            document.getElementById('subscribeModal').classList.add('active');
+        }
+
+        function showPremiumModal() {
+            document.getElementById('premiumModal').classList.add('active');
+        }
+
+        function showNewPostModal() {
+            if (!currentUser) {
+                showToast('Trebuie să fii conectat pentru a posta!', 'error');
+                showLoginModal();
+                return;
+            }
+            document.getElementById('newPostModal').classList.add('active');
+        }
+
+        function showAdminPanel() {
+            switchTab('admin');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Authentication functions
+        async function login(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
+            
+            if (error) {
+                showToast('Eroare la conectare: ' + error.message, 'error');
+            } else {
+                showToast('Conectare reușită!', 'success');
+                closeModal('loginModal');
+            }
+        }
+
+        async function subscribe(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('subscribeName').value;
+            const email = document.getElementById('subscribeEmail').value;
+            const password = document.getElementById('subscribePassword').value;
+            const accountType = document.getElementById('accountType').value;
+            
+            const { data, error } = await supabase.auth.signUp({
+                email: email,
+                password: password,
+                options: {
+                    data: {
+                        name: name,
+                        account_type: accountType
+                    }
+                }
+            });
+            
+            if (error) {
+                showToast('Eroare la înregistrare: ' + error.message, 'error');
+            } else {
+                showToast('Înregistrare reușită! Verifică email-ul pentru confirmare.', 'success');
+                closeModal('subscribeModal');
+                
+                if (accountType === 'premium') {
+                    showPremiumModal();
+                }
+            }
+        }
+
+        async function logout() {
+            const { error } = await supabase.auth.signOut();
+            if (error) {
+                showToast('Eroare la deconectare: ' + error.message, 'error');
+            } else {
+                showToast('Deconectare reușită!', 'success');
+                currentUser = null;
+                isAdmin = false;
+                updateUI();
+            }
+        }
+
+        // Stripe checkout
+        async function startCheckout(plan) {
+            if (!currentUser) {
+                showToast('Trebuie să fii conectat pentru a te abona!', 'error');
+                showLoginModal();
+                return;
+            }
+            
+            try {
+                const response = await supabase.functions.invoke('create-checkout-session', {
+                    body: { plan: plan }
+                });
+                
+                if (response.data.sessionId) {
+                    const { error } = await stripe.redirectToCheckout({
+                        sessionId: response.data.sessionId
+                    });
+                    
+                    if (error) {
+                        showToast('Eroare la procesarea plății: ' + error.message, 'error');
+                    }
+                }
+            } catch (error) {
+                showToast('Eroare la inițierea plății: ' + error.message, 'error');
+            }
+        }
+
+        async function cancelSubscription() {
+            if (!currentUser) return;
+            
+            if (confirm('Ești sigur că vrei să anulezi abonamentul?')) {
+                try {
+                    const response = await supabase.functions.invoke('cancel-subscription');
+                    
+                    if (response.data.success) {
+                        showToast('Abonament anulat cu succes!', 'success');
+                        document.getElementById('cancelSubscription').style.display = 'none';
+                    }
+                } catch (error) {
+                    showToast('Eroare la anularea abonamentului: ' + error.message, 'error');
+                }
+            }
+        }
+
+        // Live session functions
+        function startLiveSession() {
+            if (!currentUser) {
+                showToast('Trebuie să fii conectat pentru a accesa lecțiile live!', 'error');
+                showLoginModal();
+                return;
+            }
+            
+            bookLiveSession();
+        }
+
+        async function bookLiveSession() {
+            // First process payment
+            await startCheckout('live_session');
+            
+            // Then start Jitsi meeting
+            startJitsiMeeting();
+        }
+
+        function startJitsiMeeting() {
+            const domain = 'meet.jit.si';
+            const options = {
+                roomName: 'MateLesson_' + Date.now(),
+                width: '100%',
+                height: 700,
+                parentNode: document.querySelector('#jitsi-container'),
+                userInfo: {
+                    displayName: currentUser?.email || 'Guest'
+                }
+            };
+            
+            document.getElementById('jitsi-container').style.display = 'block';
+            const api = new JitsiMeetExternalAPI(domain, options);
+        }
+
+        // Content loading
+        async function loadContent(section, type) {
+            if (section === 'premium' && !currentUser) {
+                showToast('Trebuie să fii conectat pentru a accesa conținutul premium!', 'error');
+                showLoginModal();
+                return;
+            }
+            
+            const dynamicContent = document.getElementById('dynamic-content');
+            dynamicContent.innerHTML = '<div class="spinner"></div>';
+            
+            try {
+                // Load content from database or GitHub
+                const { data, error } = await supabase
+                    .from('content')
+                    .select('*')
+                    .eq('section', section)
+                    .eq('type', type)
+                    .single();
+                
+                if (data && data.content_url) {
+                    // Fetch content from GitHub
+                    const response = await fetch(data.content_url);
+                    const content = await response.text();
+                    dynamicContent.innerHTML = content;
+                } else {
+                    // Show demo content
+                    dynamicContent.innerHTML = generateDemoContent(section, type);
+                }
+                
+                // Track progress
+                if (currentUser) {
+                    trackProgress(type);
+                }
+            } catch (error) {
+                dynamicContent.innerHTML = generateDemoContent(section, type);
+            }
+        }
+
+        function generateDemoContent(section, type) {
+            if (type.includes('exercitii-interactive')) {
+                return `
+                    <div class="exercise-container">
+                        <h3>Exercițiu Interactiv - ${section === 'premium' ? 'Premium' : 'Gratuit'}</h3>
+                        <div class="exercise-question">
+                            Rezolvă ecuația: 2x + 5 = 13
+                        </div>
+                        <div class="exercise-options">
+                            <div class="exercise-option" onclick="checkAnswer(this, false)">x = 3</div>
+                            <div class="exercise-option" onclick="checkAnswer(this, true)">x = 4</div>
+                            <div class="exercise-option" onclick="checkAnswer(this, false)">x = 5</div>
+                            <div class="exercise-option" onclick="checkAnswer(this, false)">x = 6</div>
+                        </div>
+                        <button class="btn btn-primary" onclick="nextExercise()">Următorul Exercițiu</button>
+                    </div>
+                `;
+            } else if (type.includes('teste')) {
+                return `
+                    <div class="exercise-container">
+                        <h3>Test de Evaluare</h3>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 30%;"></div>
+                        </div>
+                        <p>Întrebarea 3 din 10</p>
+                        <div class="exercise-question">
+                            Care este derivata funcției f(x) = x²?
+                        </div>
+                        <div class="exercise-options">
+                            <div class="exercise-option">f'(x) = x</div>
+                            <div class="exercise-option">f'(x) = 2x</div>
+                            <div class="exercise-option">f'(x) = x²</div>
+                            <div class="exercise-option">f'(x) = 2</div>
+                        </div>
+                        <button class="btn btn-primary">Verifică Răspuns</button>
+                    </div>
+                `;
+            } else {
+                return `
+                    <div style="padding: 2rem;">
+                        <h3>${type.replace('-', ' ').toUpperCase()}</h3>
+                        <p>Conținutul pentru această secțiune va fi disponibil în curând.</p>
+                        <p>Secțiune: ${section === 'premium' ? 'Premium 🌟' : 'Gratuit'}</p>
+                        ${section === 'premium' ? '<p class="premium-badge">Conținut exclusiv pentru abonați</p>' : ''}
+                    </div>
+                `;
+            }
+        }
+
+        function checkAnswer(element, isCorrect) {
+            // Remove previous selections
+            document.querySelectorAll('.exercise-option').forEach(opt => {
+                opt.classList.remove('selected', 'correct', 'incorrect');
+            });
+            
+            // Mark current selection
+            element.classList.add('selected');
+            
+            setTimeout(() => {
+                if (isCorrect) {
+                    element.classList.add('correct');
+                    showToast('Corect! Bravo!', 'success');
+                } else {
+                    element.classList.add('incorrect');
+                    showToast('Încearcă din nou!', 'error');
+                }
+            }, 500);
+        }
+
+        function nextExercise() {
+            loadContent('free', 'en-exercitii-interactive');
+        }
+
+        // Admin functions
+        async function addNewPage() {
+            const url = prompt('Introdu URL-ul paginii HTML din GitHub:');
+            if (url) {
+                const section = prompt('Secțiune (free/premium):');
+                const type = prompt('Tip conținut (ex: clasa5-lectii):');
+                
+                if (section && type) {
+                    const { data, error } = await supabase
+                        .from('content')
+                        .insert([
+                            { 
+                                section: section, 
+                                type: type, 
+                                content_url: url,
+                                created_by: currentUser.id
+                            }
+                        ]);
+                    
+                    if (error) {
+                        showToast('Eroare la adăugarea conținutului: ' + error.message, 'error');
+                    } else {
+                        showToast('Conținut adăugat cu succes!', 'success');
+                    }
+                }
+            }
+        }
+
+        function addNewLink() {
+            const link = prompt('Introdu link-ul:');
+            const title = prompt('Titlu link:');
+            
+            if (link && title) {
+                showToast('Link adăugat: ' + title, 'success');
+            }
+        }
+
+        function manageUsers() {
+            showToast('Funcție în dezvoltare...', 'info');
+        }
+
+        function viewStatistics() {
+            showToast('Statistici: 150 utilizatori activi, 45 abonați premium', 'info');
+        }
+
+        async function saveContent() {
+            const url = document.getElementById('githubUrl').value;
+            const section = document.getElementById('contentSection').value;
+            const category = document.getElementById('contentCategory').value;
+            
+            if (url && category) {
+                const { data, error } = await supabase
+                    .from('content')
+                    .insert([
+                        {
+                            section: section,
+                            type: category,
+                            content_url: url,
+                            created_by: currentUser.id
+                        }
+                    ]);
+                
+                if (error) {
+                    showToast('Eroare: ' + error.message, 'error');
+                } else {
+                    showToast('Conținut salvat cu succes!', 'success');
+                    document.getElementById('githubUrl').value = '';
+                    document.getElementById('contentCategory').value = '';
+                }
+            }
+        }
+
+        // Forum functions
+        async function createPost(event) {
+            event.preventDefault();
+            
+            const title = document.getElementById('postTitle').value;
+            const content = document.getElementById('postContent').value;
+            
+            const { data, error } = await supabase
+                .from('forum_posts')
+                .insert([
+                    {
+                        title: title,
+                        content: content,
+                        author_id: currentUser.id,
+                        author_name: currentUser.email.split('@')[0]
+                    }
+                ]);
+            
+            if (error) {
+                showToast('Eroare la postare: ' + error.message, 'error');
+            } else {
+                showToast('Postare creată cu succes!', 'success');
+                closeModal('newPostModal');
+                loadForumPosts();
+            }
+        }
+
+        async function loadForumPosts() {
+            const { data, error } = await supabase
+                .from('forum_posts')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(10);
+            
+            if (data) {
+                const postsContainer = document.getElementById('forum-posts');
+                postsContainer.innerHTML = data.map(post => `
+                    <div class="forum-post">
+                        <div class="forum-header">
+                            <span class="forum-author">${post.author_name}</span>
+                            <span class="forum-date">${new Date(post.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <h4>${post.title}</h4>
+                        <p>${post.content}</p>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Progress tracking
+        async function trackProgress(contentType) {
+            if (!currentUser) return;
+            
+            const { data, error } = await supabase
+                .from('progress')
+                .insert([
+                    {
+                        user_id: currentUser.id,
+                        content_type: contentType,
+                        completed_at: new Date()
+                    }
+                ]);
+        }
+
+        // Toast notification
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <span>${type === 'success' ? '✓' : type === 'error' ? '✗' : 'ℹ'}</span>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Dark mode toggle
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDark);
+            
+            const btn = document.querySelector('.dark-mode-toggle');
+            btn.textContent = isDark ? '☀️' : '🌙';
+        }
+
+        // Load dark mode preference
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+            document.querySelector('.dark-mode-toggle').textContent = '☀️';
+        }
+
+        // Initialize app on load
+        document.addEventListener('DOMContentLoaded', initApp);
+
+        // Close modals on outside click
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+            }
+        }
+    </script>
+</body>
+</html>
