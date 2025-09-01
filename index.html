@@ -1416,84 +1416,87 @@
         }
 
         // Update UI based on user state  
-        function updateUI() {
-            // User display elements
-            const userDisplay = document.getElementById('userDisplay');
-            const authButtons = document.getElementById('authButtons');
-            const userButtons = document.getElementById('userButtons');
-            const userAvatar = document.getElementById('userAvatar');
-            const userName = document.getElementById('userName');
-            const userEmail = document.getElementById('userEmail');
-            const userBadges = document.getElementById('userBadges');
-            
-            // Buttons
-            const adminBtn = document.getElementById('adminBtn');
-            const adminTab = document.getElementById('adminTab');
-            const subscribeBtn = document.getElementById('subscribeBtn');
-            const cancelSubscriptionBtn = document.getElementById('cancelSubscriptionBtn');
-            const freeSignupPrompt = document.getElementById('freeSignupPrompt');
-            const heroButtons = document.getElementById('heroButtons');
-            
-            if (currentUser && userData) {
-                // Show user profile
-                userDisplay.style.display = 'block';
-                authButtons.style.display = 'none';
-                userButtons.style.display = 'flex';
-                
-                // Set user info
-                const name = userData.name || currentUser.email.split('@')[0];
-                userName.textContent = name;
-                userEmail.textContent = currentUser.email;
-                userAvatar.textContent = name.charAt(0).toUpperCase();
-                
-                // Set badges
-                userBadges.innerHTML = '';
-                if (isPremium) {
-                    userBadges.innerHTML += '<span class="badge badge-premium">Premium</span>';
-                }
-                if (isAdmin) {
-                    userBadges.innerHTML += '<span class="badge badge-admin">Admin</span>';
-                    adminBtn.style.display = 'inline-block';
-                    adminTab.style.display = 'inline-block';
-                } else {
-                    adminBtn.style.display = 'none';
-                    adminTab.style.display = 'none';
-                }
-                
-                // Show/hide subscription buttons
-                if (isPremium) {
-                    subscribeBtn.style.display = 'none';
-                    cancelSubscriptionBtn.style.display = 'inline-block';
-                    heroButtons.style.display = 'none';
-                } else {
-                    subscribeBtn.style.display = 'inline-block';
-                    cancelSubscriptionBtn.style.display = 'none';
-                    heroButtons.innerHTML = '<button class="btn btn-primary" onclick="showPremiumModal()">Activează Premium</button>';
-                }
-                
-                // Hide signup prompt for logged in users
-                if (freeSignupPrompt) {
-                    freeSignupPrompt.style.display = 'none';
-                }
-            } else {
-                // Show auth buttons for non-logged in users
-                userDisplay.style.display = 'none';
-                authButtons.style.display = 'flex';
-                userButtons.style.display = 'none';
-                adminBtn.style.display = 'none';
-                adminTab.style.display = 'none';
-                
-                // Show signup prompts
-                if (freeSignupPrompt) {
-                    freeSignupPrompt.style.display = 'block';
-                }
-                heroButtons.innerHTML = `
-                    <button class="btn btn-primary" onclick="showSubscribeModal()">Începe Gratuit</button>
-                    <button class="btn btn-secondary" onclick="showPremiumModal()">Vezi Planuri Premium</button>
-                `;
-            }
+function updateUI() {
+    // User display elements
+    const userDisplay = document.getElementById('userDisplay');
+    const authButtons = document.getElementById('authButtons');
+    const userButtons = document.getElementById('userButtons');
+    const userAvatar = document.getElementById('userAvatar');
+    const userName = document.getElementById('userName');
+    const userEmail = document.getElementById('userEmail');
+    const userBadges = document.getElementById('userBadges');
+    
+    // Buttons
+    const adminBtn = document.getElementById('adminBtn');
+    const adminTab = document.getElementById('adminTab');
+    const subscribeBtn = document.getElementById('subscribeBtn');
+    const cancelSubscriptionBtn = document.getElementById('cancelSubscriptionBtn');
+    const freeSignupPrompt = document.getElementById('freeSignupPrompt');
+    const heroButtons = document.getElementById('heroButtons');
+    
+    // Modificare aici - verificăm doar currentUser, nu și userData
+    if (currentUser) {
+        // Show user profile
+        userDisplay.style.display = 'block';
+        authButtons.style.display = 'none';
+        userButtons.style.display = 'flex';
+        
+        // Set user info - folosim direct currentUser dacă userData nu e disponibil
+        const name = (userData && userData.name) ? userData.name : currentUser.email.split('@')[0];
+        userName.textContent = name;
+        userEmail.textContent = currentUser.email;
+        userAvatar.textContent = name.charAt(0).toUpperCase();
+        
+        // Set badges
+        userBadges.innerHTML = '';
+        if (isPremium) {
+            userBadges.innerHTML += '<span class="badge badge-premium">Premium</span>';
         }
-
+        if (isAdmin) {
+            userBadges.innerHTML += '<span class="badge badge-admin">Admin</span>';
+            adminBtn.style.display = 'inline-block';
+            adminTab.style.display = 'inline-block';
+        } else {
+            adminBtn.style.display = 'none';
+            adminTab.style.display = 'none';
+        }
+        
+        // Show/hide subscription buttons
+        if (isPremium) {
+            subscribeBtn.style.display = 'none';
+            cancelSubscriptionBtn.style.display = 'inline-block';
+            heroButtons.style.display = 'none';
+        } else {
+            subscribeBtn.style.display = 'inline-block';
+            cancelSubscriptionBtn.style.display = 'none';
+            heroButtons.innerHTML = '<button class="btn btn-primary" onclick="showPremiumModal()">Activează Premium</button>';
+        }
+        
+        // Hide signup prompt for logged in users
+        if (freeSignupPrompt) {
+            freeSignupPrompt.style.display = 'none';
+        }
+    } else {
+        // Show auth buttons for non-logged in users
+        userDisplay.style.display = 'none';
+        authButtons.style.display = 'flex';
+        userButtons.style.display = 'none';
+        adminBtn.style.display = 'none';
+        adminTab.style.display = 'none';
+        
+        // Show signup prompts
+        if (freeSignupPrompt) {
+            freeSignupPrompt.style.display = 'block';
+        }
+        if (heroButtons) {
+            heroButtons.innerHTML = `
+                <button class="btn btn-primary" onclick="showSubscribeModal()">Începe Gratuit</button>
+                <button class="btn btn-secondary" onclick="showPremiumModal()">Vezi Planuri Premium</button>
+            `;
+        }
+    }
+}
+        
         // Tab switching
         function switchTab(tabName, event) {
             // Remove active class from all tabs and contents
