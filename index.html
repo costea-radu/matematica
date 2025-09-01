@@ -29,6 +29,7 @@
             --dark: #1f2937;
             --light: #f3f4f6;
             --white: #ffffff;
+            --gold: #fbbf24;
             --shadow: 0 10px 30px rgba(0,0,0,0.1);
             --radius: 12px;
         }
@@ -115,6 +116,77 @@
 
         .nav-link:hover::after {
             width: 100%;
+        }
+
+        /* User Profile Display */
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-radius: var(--radius);
+            position: relative;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 0.9rem;
+        }
+
+        .user-email {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        .user-badges {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .badge {
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-premium {
+            background: linear-gradient(135deg, var(--gold) 0%, #f59e0b 100%);
+            color: white;
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .badge-admin {
+            background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
+            color: white;
         }
 
         .btn {
@@ -406,7 +478,6 @@
         .modal-close:hover {
             transform: rotate(90deg);
         }
-
         /* Admin Panel */
         .admin-panel {
             background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%);
@@ -491,27 +562,6 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2rem;
-            }
-            
-            .nav-links {
-                width: 100%;
-                justify-content: center;
-                margin-top: 1rem;
-            }
-            
-            .section-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .admin-controls {
-                flex-direction: column;
-            }
         }
 
         /* Toast Notifications */
@@ -808,7 +858,8 @@
         body.dark-mode .nav-link,
         body.dark-mode .section-card h3,
         body.dark-mode .form-label,
-        body.dark-mode .modal-close {
+        body.dark-mode .modal-close,
+        body.dark-mode .user-name {
             color: white;
         }
 
@@ -830,6 +881,32 @@
             background: #1f2937;
             color: white;
         }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .nav-links {
+                width: 100%;
+                justify-content: center;
+                margin-top: 1rem;
+            }
+            
+            .section-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .admin-controls {
+                flex-direction: column;
+            }
+
+            .user-profile {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
     </style>
 </head>
 <body>
@@ -842,14 +919,35 @@
                 <a href="#free" class="nav-link">Gratuit</a>
                 <a href="#premium" class="nav-link">Premium</a>
                 <a href="#forum" class="nav-link">Forum</a>
-                <button class="btn btn-outline" onclick="showLoginModal()">Conectare</button>
-                <button class="btn btn-primary" onclick="showSubscribeModal()">Abonează-te</button>
-                <button id="adminBtn" class="btn btn-danger" style="display:none;" onclick="showAdminPanel()">Admin</button>
-                <button id="logoutBtn" class="btn btn-secondary" style="display:none;" onclick="logout()">Deconectare</button>
+                
+                <!-- Authenticated User Display -->
+                <div id="userDisplay" style="display:none;">
+                    <div class="user-profile">
+                        <div class="user-avatar" id="userAvatar">U</div>
+                        <div class="user-info">
+                            <span class="user-name" id="userName">Utilizator</span>
+                            <span class="user-email" id="userEmail">email@example.com</span>
+                        </div>
+                        <div class="user-badges" id="userBadges"></div>
+                    </div>
+                </div>
+
+                <!-- Non-authenticated buttons -->
+                <div id="authButtons" style="display:flex; gap:1rem;">
+                    <button class="btn btn-outline" onclick="showLoginModal()">Conectare</button>
+                    <button class="btn btn-primary" onclick="showSubscribeModal()">Abonează-te</button>
+                </div>
+
+                <!-- Authenticated buttons -->
+                <div id="userButtons" style="display:none; gap:1rem;">
+                    <button id="subscribeBtn" class="btn btn-primary" onclick="showPremiumModal()" style="display:none;">Activează Premium</button>
+                    <button id="cancelSubscriptionBtn" class="btn btn-danger" onclick="cancelSubscription()" style="display:none;">Anulează Abonament</button>
+                    <button id="adminBtn" class="btn btn-danger" onclick="showAdminPanel()" style="display:none;">Admin</button>
+                    <button id="logoutBtn" class="btn btn-secondary" onclick="logout()">Deconectare</button>
+                </div>
             </div>
         </nav>
     </header>
-
     <!-- Main Content -->
     <main class="container">
         <div class="content-wrapper">
@@ -857,7 +955,7 @@
             <div class="hero">
                 <h1>Învață Matematică cu Mate</h1>
                 <p>Platforma completă pentru excelență în matematică</p>
-                <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <div id="heroButtons" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
                     <button class="btn btn-primary" onclick="showSubscribeModal()">Începe Gratuit</button>
                     <button class="btn btn-secondary" onclick="showPremiumModal()">Vezi Planuri Premium</button>
                 </div>
@@ -865,10 +963,10 @@
 
             <!-- Tab System -->
             <div class="tabs">
-                <button class="tab active" onclick="switchTab('free')">Secțiune Gratuită</button>
-                <button class="tab" onclick="switchTab('premium')">Secțiune Premium</button>
-                <button class="tab" onclick="switchTab('forum')">Forum</button>
-                <button class="tab" id="adminTab" style="display:none;" onclick="switchTab('admin')">Administrare</button>
+                <button class="tab active" onclick="switchTab('free', event)">Secțiune Gratuită</button>
+                <button class="tab" onclick="switchTab('premium', event)">Secțiune Premium</button>
+                <button class="tab" onclick="switchTab('forum', event)">Forum</button>
+                <button class="tab" id="adminTab" style="display:none;" onclick="switchTab('admin', event)">Administrare</button>
             </div>
 
             <!-- Free Section -->
@@ -897,7 +995,7 @@
                     </div>
                 </div>
                 
-                <div style="text-align: center; margin-top: 3rem;">
+                <div id="freeSignupPrompt" style="text-align: center; margin-top: 3rem;">
                     <h3>Înregistrează-te gratuit pentru a-ți salva progresul!</h3>
                     <button class="btn btn-primary" onclick="showSubscribeModal()">Înregistrare Gratuită</button>
                 </div>
@@ -1110,7 +1208,6 @@
             </div>
         </div>
     </footer>
-
     <!-- Login Modal -->
     <div id="loginModal" class="modal">
         <div class="modal-content">
@@ -1212,10 +1309,6 @@
                     <button class="btn btn-secondary" onclick="bookLiveSession()">Rezervă Acum</button>
                 </div>
             </div>
-            
-            <div id="cancelSubscription" style="display:none; margin-top: 2rem; text-align: center;">
-                <button class="btn btn-danger" onclick="cancelSubscription()">Anulează Abonamentul</button>
-            </div>
         </div>
     </div>
 
@@ -1258,7 +1351,9 @@
 
         // Current user state
         let currentUser = null;
+        let userData = null;
         let isAdmin = false;
+        let isPremium = false;
 
         // Initialize app
         async function initApp() {
@@ -1266,60 +1361,42 @@
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 currentUser = user;
-                await checkUserRole();
+                await loadUserData();
+                await checkSubscription();
                 updateUI();
             }
             
             // Listen for auth changes
-            supabase.auth.onAuthStateChange((event, session) => {
-                if (event === 'SIGNED_IN') {
+            supabase.auth.onAuthStateChange(async (event, session) => {
+                if (event === 'SIGNED_IN' && session) {
                     currentUser = session.user;
-                    checkUserRole();
+                    await loadUserData();
+                    await checkSubscription();
                     updateUI();
                 } else if (event === 'SIGNED_OUT') {
                     currentUser = null;
+                    userData = null;
                     isAdmin = false;
+                    isPremium = false;
                     updateUI();
                 }
             });
         }
 
-        // Check user role
-        async function checkUserRole() {
+        // Load complete user data
+        async function loadUserData() {
             if (!currentUser) return;
             
             const { data, error } = await supabase
                 .from('users')
-                .select('role')
+                .select('*')
                 .eq('id', currentUser.id)
                 .single();
             
-            if (data && data.role === 'admin') {
-                isAdmin = true;
-            }
-        }
-
-        // Update UI based on user state
-        function updateUI() {
-            const adminBtn = document.getElementById('adminBtn');
-            const adminTab = document.getElementById('adminTab');
-            const logoutBtn = document.getElementById('logoutBtn');
-            const cancelBtn = document.getElementById('cancelSubscription');
-            
-            if (currentUser) {
-                logoutBtn.style.display = 'inline-block';
-                
-                if (isAdmin) {
-                    adminBtn.style.display = 'inline-block';
-                    adminTab.style.display = 'inline-block';
-                }
-                
-                // Check if user has premium subscription
-                checkSubscription();
-            } else {
-                logoutBtn.style.display = 'none';
-                adminBtn.style.display = 'none';
-                adminTab.style.display = 'none';
+            if (data) {
+                userData = data;
+                isAdmin = data.role === 'admin';
+                isPremium = data.account_type === 'premium';
             }
         }
 
@@ -1335,18 +1412,109 @@
                 .single();
             
             if (data) {
-                document.getElementById('cancelSubscription').style.display = 'block';
+                isPremium = true;
+                // Update user account type if needed
+                if (userData && userData.account_type !== 'premium') {
+                    await supabase
+                        .from('users')
+                        .update({ account_type: 'premium' })
+                        .eq('id', currentUser.id);
+                    userData.account_type = 'premium';
+                }
+            }
+            
+            return data;
+        }
+
+        // Update UI based on user state  
+        function updateUI() {
+            // User display elements
+            const userDisplay = document.getElementById('userDisplay');
+            const authButtons = document.getElementById('authButtons');
+            const userButtons = document.getElementById('userButtons');
+            const userAvatar = document.getElementById('userAvatar');
+            const userName = document.getElementById('userName');
+            const userEmail = document.getElementById('userEmail');
+            const userBadges = document.getElementById('userBadges');
+            
+            // Buttons
+            const adminBtn = document.getElementById('adminBtn');
+            const adminTab = document.getElementById('adminTab');
+            const subscribeBtn = document.getElementById('subscribeBtn');
+            const cancelSubscriptionBtn = document.getElementById('cancelSubscriptionBtn');
+            const freeSignupPrompt = document.getElementById('freeSignupPrompt');
+            const heroButtons = document.getElementById('heroButtons');
+            
+            if (currentUser && userData) {
+                // Show user profile
+                userDisplay.style.display = 'block';
+                authButtons.style.display = 'none';
+                userButtons.style.display = 'flex';
+                
+                // Set user info
+                const name = userData.name || currentUser.email.split('@')[0];
+                userName.textContent = name;
+                userEmail.textContent = currentUser.email;
+                userAvatar.textContent = name.charAt(0).toUpperCase();
+                
+                // Set badges
+                userBadges.innerHTML = '';
+                if (isPremium) {
+                    userBadges.innerHTML += '<span class="badge badge-premium">Premium</span>';
+                }
+                if (isAdmin) {
+                    userBadges.innerHTML += '<span class="badge badge-admin">Admin</span>';
+                    adminBtn.style.display = 'inline-block';
+                    adminTab.style.display = 'inline-block';
+                } else {
+                    adminBtn.style.display = 'none';
+                    adminTab.style.display = 'none';
+                }
+                
+                // Show/hide subscription buttons
+                if (isPremium) {
+                    subscribeBtn.style.display = 'none';
+                    cancelSubscriptionBtn.style.display = 'inline-block';
+                    heroButtons.style.display = 'none';
+                } else {
+                    subscribeBtn.style.display = 'inline-block';
+                    cancelSubscriptionBtn.style.display = 'none';
+                    heroButtons.innerHTML = '<button class="btn btn-primary" onclick="showPremiumModal()">Activează Premium</button>';
+                }
+                
+                // Hide signup prompt for logged in users
+                if (freeSignupPrompt) {
+                    freeSignupPrompt.style.display = 'none';
+                }
+            } else {
+                // Show auth buttons for non-logged in users
+                userDisplay.style.display = 'none';
+                authButtons.style.display = 'flex';
+                userButtons.style.display = 'none';
+                adminBtn.style.display = 'none';
+                adminTab.style.display = 'none';
+                
+                // Show signup prompts
+                if (freeSignupPrompt) {
+                    freeSignupPrompt.style.display = 'block';
+                }
+                heroButtons.innerHTML = `
+                    <button class="btn btn-primary" onclick="showSubscribeModal()">Începe Gratuit</button>
+                    <button class="btn btn-secondary" onclick="showPremiumModal()">Vezi Planuri Premium</button>
+                `;
             }
         }
 
         // Tab switching
-        function switchTab(tabName) {
+        function switchTab(tabName, event) {
             // Remove active class from all tabs and contents
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             
             // Add active class to selected tab and content
-            event.target.classList.add('active');
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
             document.getElementById(`${tabName}-content`).classList.add('active');
         }
 
@@ -1373,7 +1541,7 @@
         }
 
         function showAdminPanel() {
-            switchTab('admin');
+            switchTab('admin', { target: document.getElementById('adminTab') });
         }
 
         function closeModal(modalId) {
@@ -1438,7 +1606,9 @@
             } else {
                 showToast('Deconectare reușită!', 'success');
                 currentUser = null;
+                userData = null;
                 isAdmin = false;
+                isPremium = false;
                 updateUI();
             }
         }
@@ -1452,11 +1622,15 @@
             }
             
             try {
+                const { data: { session } } = await supabase.auth.getSession();
                 const response = await supabase.functions.invoke('create-checkout-session', {
-                    body: { plan: plan }
+                    body: { plan: plan },
+                    headers: {
+                        Authorization: `Bearer ${session.access_token}`
+                    }
                 });
                 
-                if (response.data.sessionId) {
+                if (response.data && response.data.sessionId) {
                     const { error } = await stripe.redirectToCheckout({
                         sessionId: response.data.sessionId
                     });
@@ -1464,6 +1638,8 @@
                     if (error) {
                         showToast('Eroare la procesarea plății: ' + error.message, 'error');
                     }
+                } else {
+                    showToast('Eroare la inițierea plății', 'error');
                 }
             } catch (error) {
                 showToast('Eroare la inițierea plății: ' + error.message, 'error');
@@ -1475,11 +1651,19 @@
             
             if (confirm('Ești sigur că vrei să anulezi abonamentul?')) {
                 try {
-                    const response = await supabase.functions.invoke('cancel-subscription');
+                    const { data: { session } } = await supabase.auth.getSession();
+                    const response = await supabase.functions.invoke('cancel-subscription', {
+                        headers: {
+                            Authorization: `Bearer ${session.access_token}`
+                        }
+                    });
                     
-                    if (response.data.success) {
+                    if (response.data && response.data.success) {
                         showToast('Abonament anulat cu succes!', 'success');
-                        document.getElementById('cancelSubscription').style.display = 'none';
+                        isPremium = false;
+                        updateUI();
+                    } else {
+                        showToast('Eroare la anularea abonamentului', 'error');
                     }
                 } catch (error) {
                     showToast('Eroare la anularea abonamentului: ' + error.message, 'error');
@@ -1524,9 +1708,9 @@
 
         // Content loading
         async function loadContent(section, type) {
-            if (section === 'premium' && !currentUser) {
-                showToast('Trebuie să fii conectat pentru a accesa conținutul premium!', 'error');
-                showLoginModal();
+            if (section === 'premium' && !isPremium) {
+                showToast('Trebuie să ai abonament premium pentru a accesa acest conținut!', 'error');
+                showPremiumModal();
                 return;
             }
             
@@ -1765,7 +1949,7 @@
                     {
                         user_id: currentUser.id,
                         content_type: contentType,
-                        completed_at: new Date()
+                        last_accessed: new Date()
                     }
                 ]);
         }
