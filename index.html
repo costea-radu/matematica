@@ -1346,6 +1346,16 @@
 
         // Initialize app
         async function initApp() {
+    // Verifică parametrii URL pentru success
+    const urlParams = new URLSearchParams(window.location.search);
+    const isSuccess = urlParams.get('success');
+    const sessionId = urlParams.get('session_id');
+    
+    if (isSuccess === 'true') {
+        showToast('Plata procesată cu succes! Abonamentul tău este acum activ.', 'success');
+        // Curăță URL-ul
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
             // Check if user is logged in
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
