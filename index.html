@@ -90,32 +90,79 @@
 
         .nav-links {
             display: flex;
-            gap: 2rem;
+            gap: 1rem;
             align-items: center;
             flex-wrap: wrap;
         }
 
-        .nav-link {
-            color: var(--dark);
-            text-decoration: none;
-            font-weight: 500;
+        .nav-button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 600;
+            cursor: pointer;
             transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
             position: relative;
+            overflow: hidden;
+            font-size: 1rem;
+            min-width: 140px;
         }
 
-        .nav-link::after {
+        .nav-button::before {
             content: '';
             position: absolute;
-            bottom: -5px;
-            left: 0;
+            top: 50%;
+            left: 50%;
             width: 0;
-            height: 2px;
-            background: var(--primary);
-            transition: width 0.3s;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
         }
 
-        .nav-link:hover::after {
-            width: 100%;
+        .nav-button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .nav-button.btn-free {
+            background: linear-gradient(135deg, var(--secondary) 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .nav-button.btn-premium {
+            background: linear-gradient(135deg, var(--gold) 0%, #f59e0b 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+            animation: shimmer 3s infinite;
+        }
+
+        .nav-button.btn-forum {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+        }
+
+        .nav-button.btn-live {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .nav-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+
+        @keyframes shimmer {
+            0% { box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3); }
+            50% { box-shadow: 0 6px 25px rgba(251, 191, 36, 0.5); }
+            100% { box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3); }
         }
 
         /* User Profile Display */
@@ -176,12 +223,6 @@
             background: linear-gradient(135deg, var(--gold) 0%, #f59e0b 100%);
             color: white;
             animation: shimmer 2s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
         }
 
         .badge-admin {
@@ -255,24 +296,6 @@
             transform: translateY(-2px);
         }
 
-        /* Live Sessions Section */
-        .live-sessions {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
-            border-radius: var(--radius);
-            padding: 2rem;
-            margin: 2rem 0;
-            border: 2px solid var(--secondary);
-        }
-
-        .live-session-card {
-            background: white;
-            border-radius: var(--radius);
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            border-left: 4px solid var(--secondary);
-        }
-
         /* Main Content */
         main {
             padding: 2rem 0;
@@ -321,6 +344,22 @@
             font-size: 1.25rem;
             color: var(--dark);
             margin-bottom: 2rem;
+        }
+
+        /* Free Content Section - Always visible */
+        .free-section {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
+            border-radius: var(--radius);
+            padding: 2rem;
+            margin: 2rem 0;
+            border: 2px solid var(--secondary);
+        }
+
+        .free-section h2 {
+            color: var(--secondary);
+            margin-bottom: 2rem;
+            font-size: 2rem;
+            text-align: center;
         }
 
         /* Section Cards */
@@ -406,6 +445,32 @@
             50% {
                 transform: scale(1.05);
             }
+        }
+
+        /* Tab System - Updated */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Premium Section */
+        .premium-section {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%);
+            border-radius: var(--radius);
+            padding: 2rem;
+            margin: 2rem 0;
+            border: 2px solid var(--gold);
+        }
+
+        .premium-section h2 {
+            color: var(--gold);
+            margin-bottom: 2rem;
+            font-size: 2rem;
+            text-align: center;
         }
 
         /* Forms */
@@ -511,53 +576,6 @@
             gap: 1rem;
             flex-wrap: wrap;
             margin-top: 1rem;
-        }
-
-        /* Tab System */
-        .tabs {
-            display: flex;
-            gap: 1rem;
-            border-bottom: 2px solid var(--light);
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .tab {
-            padding: 0.75rem 1.5rem;
-            background: none;
-            border: none;
-            color: var(--dark);
-            font-weight: 500;
-            cursor: pointer;
-            position: relative;
-            transition: all 0.3s;
-        }
-
-        .tab:hover {
-            color: var(--primary);
-        }
-
-        .tab.active {
-            color: var(--primary);
-        }
-
-        .tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: var(--primary);
-        }
-
-        .tab-content {
-            display: none;
-            animation: fadeIn 0.5s ease;
-        }
-
-        .tab-content.active {
-            display: block;
         }
 
         /* Forum */
@@ -667,11 +685,11 @@
         <nav class="container">
             <div class="logo">Mate</div>
             <div class="nav-links">
-                <a href="#home" class="nav-link">Acasă</a>
-                <a href="#free" class="nav-link">Gratuit</a>
-                <a href="#premium" class="nav-link">Premium</a>
-                <a href="#forum" class="nav-link">Forum</a>
-                <a href="#live-sessions" class="nav-link">Lecții Live</a>
+                <!-- Main Navigation Buttons -->
+                <button class="nav-button btn-free" onclick="showFreeContent()">📚 Conținut Gratuit</button>
+                <button class="nav-button btn-premium" onclick="showPremiumContent()">⭐ Premium</button>
+                <button class="nav-button btn-forum" onclick="showForumContent()">💬 Forum</button>
+                <button class="nav-button btn-live" onclick="showLiveSessionsContent()">🎥 Lecții Live</button>
                 
                 <!-- Authenticated User Display -->
                 <div id="userDisplay" style="display:none;">
@@ -710,42 +728,87 @@
                 <h1>Învață matematica cu ușurință</h1>
                 <p>Platformă pentru pregătire suplimentară la matematică</p>
                 <div id="heroButtons" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-                    <button class="btn btn-primary" onclick="showSubscribeModal()">Înregistrare Gratuită</button>
+                    <button class="btn btn-primary" onclick="showSubscribeModal()">Începe Gratuit</button>
                     <button class="btn btn-secondary" onclick="showPremiumModal()">Vezi Planuri Premium</button>
                 </div>
             </div>
 
-            <!-- Tab System -->
-            <div class="tabs">
-                <button class="tab active" onclick="switchTab('free', event)">Secțiune Gratuită</button>
-                <button class="tab" onclick="switchTab('premium', event)">Secțiune Premium</button>
-                <button class="tab" onclick="switchTab('forum', event)">Forum</button>
-                <button class="tab" onclick="switchTab('live-sessions', event)">Lecții Live</button>
-                <button class="tab" id="adminTab" style="display:none;" onclick="switchTab('admin', event)">Administrare</button>
-            </div>
-
-            <!-- Free Section -->
-            <div id="free-content" class="tab-content active">
-                <h2>Conținut Gratuit</h2>
+            <!-- Free Section - Always visible on home -->
+            <div class="free-section" id="home-free-section">
+                <h2>📚 Conținut Gratuit</h2>
+                <p style="text-align: center; margin-bottom: 2rem; font-size: 1.1rem; color: var(--dark);">
+                    Începe învățarea cu materialele noastre gratuite pentru toate clasele!
+                </p>
                 <div class="section-grid">
                     <div class="section-card">
-                        <h3>📚 Evaluare Națională</h3>
+                        <h3>📖 Clasa a V-a</h3>
                         <ul>
-                            <li onclick="loadContent('free', 'en-lectii')">Lecții</li>
-                            <li onclick="loadContent('free', 'en-exercitii-interactive')">Exerciții Interactive</li>
-                            <li onclick="loadContent('free', 'en-exercitii-pdf')">Exerciții PDF</li>
-                            <li onclick="loadContent('free', 'en-teste-interactive')">Teste Interactive</li>
-                            <li onclick="loadContent('free', 'en-teste-pdf')">Teste PDF</li>
+                            <li onclick="loadContent('free', 'clasa5-lectii')">Lecții</li>
+                            <li onclick="loadContent('free', 'clasa5-exercitii')">Exerciții Interactive</li>
+                            <li onclick="loadContent('free', 'clasa5-teste')">Teste</li>
                         </ul>
                     </div>
+                    
                     <div class="section-card">
-                        <h3>🎓 Bacalaureat</h3>
+                        <h3>📖 Clasa a VI-a</h3>
                         <ul>
-                            <li onclick="loadContent('free', 'bac-lectii')">Lecții</li>
-                            <li onclick="loadContent('free', 'bac-exercitii-interactive')">Exerciții Interactive</li>
-                            <li onclick="loadContent('free', 'bac-exercitii-pdf')">Exerciții PDF</li>
-                            <li onclick="loadContent('free', 'bac-teste-interactive')">Teste Interactive</li>
-                            <li onclick="loadContent('free', 'bac-teste-pdf')">Teste PDF</li>
+                            <li onclick="loadContent('free', 'clasa6-lectii')">Lecții</li>
+                            <li onclick="loadContent('free', 'clasa6-exercitii')">Exerciții Interactive</li>
+                            <li onclick="loadContent('free', 'clasa6-teste')">Teste</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="section-card">
+                        <h3>📖 Clasa a VII-a</h3>
+                        <ul>
+                            <li onclick="loadContent('free', 'clasa7-lectii')">Lecții</li>
+                            <li onclick="loadContent('free', 'clasa7-exercitii')">Exerciții Interactive</li>
+                            <li onclick="loadContent('free', 'clasa7-teste')">Teste</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="section-card">
+                        <h3>📖 Clasa a VIII-a</h3>
+                        <ul>
+                            <li onclick="loadContent('free', 'clasa8-lectii')">Lecții</li>
+                            <li onclick="loadContent('free', 'clasa8-exercitii')">Exerciții Interactive</li>
+                            <li onclick="loadContent('free', 'clasa8-teste')">Teste</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="section-card">
+                        <h3>📖 Clasa a IX-a</h3>
+                        <ul>
+                            <li onclick="loadContent('free', 'clasa9-lectii')">Lecții</li>
+                            <li onclick="loadContent('free', 'clasa9-exercitii')">Exerciții Interactive</li>
+                            <li onclick="loadContent('free', 'clasa9-teste')">Teste</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="section-card">
+                        <h3>📖 Clasa a X-a</h3>
+                        <ul>
+                            <li onclick="loadContent('free', 'clasa10-lectii')">Lecții</li>
+                            <li onclick="loadContent('free', 'clasa10-exercitii')">Exerciții Interactive</li>
+                            <li onclick="loadContent('free', 'clasa10-teste')">Teste</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="section-card">
+                        <h3>📖 Clasa a XI-a</h3>
+                        <ul>
+                            <li onclick="loadContent('free', 'clasa11-lectii')">Lecții</li>
+                            <li onclick="loadContent('free', 'clasa11-exercitii')">Exerciții Interactive</li>
+                            <li onclick="loadContent('free', 'clasa11-teste')">Teste</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="section-card">
+                        <h3>📖 Clasa a XII-a</h3>
+                        <ul>
+                            <li onclick="loadContent('free', 'clasa12-lectii')">Lecții</li>
+                            <li onclick="loadContent('free', 'clasa12-exercitii')">Exerciții Interactive</li>
+                            <li onclick="loadContent('free', 'clasa12-teste')">Teste</li>
                         </ul>
                     </div>
                 </div>
@@ -756,123 +819,129 @@
                 </div>
             </div>
 
+            <!-- Free Section (When clicked from nav) -->
+            <div id="free-content" class="tab-content">
+                <div class="free-section">
+                    <h2>📚 Conținut Gratuit</h2>
+                    <div class="section-grid">
+                        <div class="section-card">
+                            <h3>📖 Clasa a V-a</h3>
+                            <ul>
+                                <li onclick="loadContent('free', 'clasa5-lectii')">Lecții</li>
+                                <li onclick="loadContent('free', 'clasa5-exercitii')">Exerciții Interactive</li>
+                                <li onclick="loadContent('free', 'clasa5-teste')">Teste</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="section-card">
+                            <h3>📖 Clasa a VI-a</h3>
+                            <ul>
+                                <li onclick="loadContent('free', 'clasa6-lectii')">Lecții</li>
+                                <li onclick="loadContent('free', 'clasa6-exercitii')">Exerciții Interactive</li>
+                                <li onclick="loadContent('free', 'clasa6-teste')">Teste</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="section-card">
+                            <h3>📖 Clasa a VII-a</h3>
+                            <ul>
+                                <li onclick="loadContent('free', 'clasa7-lectii')">Lecții</li>
+                                <li onclick="loadContent('free', 'clasa7-exercitii')">Exerciții Interactive</li>
+                                <li onclick="loadContent('free', 'clasa7-teste')">Teste</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="section-card">
+                            <h3>📖 Clasa a VIII-a</h3>
+                            <ul>
+                                <li onclick="loadContent('free', 'clasa8-lectii')">Lecții</li>
+                                <li onclick="loadContent('free', 'clasa8-exercitii')">Exerciții Interactive</li>
+                                <li onclick="loadContent('free', 'clasa8-teste')">Teste</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="section-card">
+                            <h3>📖 Clasa a IX-a</h3>
+                            <ul>
+                                <li onclick="loadContent('free', 'clasa9-lectii')">Lecții</li>
+                                <li onclick="loadContent('free', 'clasa9-exercitii')">Exerciții Interactive</li>
+                                <li onclick="loadContent('free', 'clasa9-teste')">Teste</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="section-card">
+                            <h3>📖 Clasa a X-a</h3>
+                            <ul>
+                                <li onclick="loadContent('free', 'clasa10-lectii')">Lecții</li>
+                                <li onclick="loadContent('free', 'clasa10-exercitii')">Exerciții Interactive</li>
+                                <li onclick="loadContent('free', 'clasa10-teste')">Teste</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="section-card">
+                            <h3>📖 Clasa a XI-a</h3>
+                            <ul>
+                                <li onclick="loadContent('free', 'clasa11-lectii')">Lecții</li>
+                                <li onclick="loadContent('free', 'clasa11-exercitii')">Exerciții Interactive</li>
+                                <li onclick="loadContent('free', 'clasa11-teste')">Teste</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="section-card">
+                            <h3>📖 Clasa a XII-a</h3>
+                            <ul>
+                                <li onclick="loadContent('free', 'clasa12-lectii')">Lecții</li>
+                                <li onclick="loadContent('free', 'clasa12-exercitii')">Exerciții Interactive</li>
+                                <li onclick="loadContent('free', 'clasa12-teste')">Teste</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Premium Section -->
             <div id="premium-content" class="tab-content">
-                <h2>Conținut Premium <span class="premium-badge">PREMIUM</span></h2>
-                
-                <div class="section-grid">
-                    <div class="section-card">
-                        <h3>📚 Evaluare Națională</h3>
-                        <ul>
-                            <li onclick="loadContent('premium', 'en-lectii')">Lecții Complete</li>
-                            <li onclick="loadContent('premium', 'en-exercitii-interactive')">Exerciții Interactive</li>
-                            <li onclick="loadContent('premium', 'en-exercitii-pdf')">Exerciții PDF</li>
-                            <li onclick="loadContent('premium', 'en-teste-interactive')">Teste Interactive</li>
-                            <li onclick="loadContent('premium', 'en-teste-pdf')">Teste PDF</li>
-                        </ul>
+                <div class="premium-section">
+                    <h2>⭐ Conținut Premium</h2>
+                    <div class="section-grid">
+                        <div class="section-card">
+                            <h3>📚 Evaluare Națională</h3>
+                            <ul>
+                                <li onclick="loadContent('premium', 'en-lectii')">Lecții Complete</li>
+                                <li onclick="loadContent('premium', 'en-exercitii-interactive')">Exerciții Interactive</li>
+                                <li onclick="loadContent('premium', 'en-exercitii-pdf')">Exerciții PDF</li>
+                                <li onclick="loadContent('premium', 'en-teste-interactive')">Teste Interactive</li>
+                                <li onclick="loadContent('premium', 'en-teste-pdf')">Teste PDF</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="section-card">
+                            <h3>🎓 Bacalaureat</h3>
+                            <ul>
+                                <li onclick="loadContent('premium', 'bac-lectii')">Lecții Complete</li>
+                                <li onclick="loadContent('premium', 'bac-exercitii-interactive')">Exerciții Interactive</li>
+                                <li onclick="loadContent('premium', 'bac-exercitii-pdf')">Exerciții PDF</li>
+                                <li onclick="loadContent('premium', 'bac-teste-interactive')">Teste Interactive</li>
+                                <li onclick="loadContent('premium', 'bac-teste-pdf')">Teste PDF</li>
+                            </ul>
+                        </div>
                     </div>
-                    
-                    <div class="section-card">
-                        <h3>🎓 Bacalaureat</h3>
-                        <ul>
-                            <li onclick="loadContent('premium', 'bac-lectii')">Lecții Complete</li>
-                            <li onclick="loadContent('premium', 'bac-exercitii-interactive')">Exerciții Interactive</li>
-                            <li onclick="loadContent('premium', 'bac-exercitii-pdf')">Exerciții PDF</li>
-                            <li onclick="loadContent('premium', 'bac-teste-interactive')">Teste Interactive</li>
-                            <li onclick="loadContent('premium', 'bac-teste-pdf')">Teste PDF</li>
-                        </ul>
-                    </div>
-                </div>
 
-                <h3 style="margin-top: 3rem;">Clase Disponibile</h3>
-                <div class="section-grid">
-                    <div class="section-card">
-                        <h3>📖 Clasa a V-a</h3>
-                        <ul>
-                            <li onclick="loadContent('premium', 'clasa5-lectii')">Lecții</li>
-                            <li onclick="loadContent('premium', 'clasa5-exercitii')">Exerciții</li>
-                            <li onclick="loadContent('premium', 'clasa5-teste')">Teste</li>
-                        </ul>
+                    <div style="text-align: center; margin-top: 3rem;">
+                        <button class="btn btn-primary" onclick="showPremiumModal()">Activează Premium</button>
+                        <button class="btn btn-secondary" onclick="startLiveSession()">Lecție Video Live</button>
                     </div>
-                    
-                    <div class="section-card">
-                        <h3>📖 Clasa a VI-a</h3>
-                        <ul>
-                            <li onclick="loadContent('premium', 'clasa6-lectii')">Lecții</li>
-                            <li onclick="loadContent('premium', 'clasa6-exercitii')">Exerciții</li>
-                            <li onclick="loadContent('premium', 'clasa6-teste')">Teste</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="section-card">
-                        <h3>📖 Clasa a VII-a</h3>
-                        <ul>
-                            <li onclick="loadContent('premium', 'clasa7-lectii')">Lecții</li>
-                            <li onclick="loadContent('premium', 'clasa7-exercitii')">Exerciții</li>
-                            <li onclick="loadContent('premium', 'clasa7-teste')">Teste</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="section-card">
-                        <h3>📖 Clasa a VIII-a</h3>
-                        <ul>
-                            <li onclick="loadContent('premium', 'clasa8-lectii')">Lecții</li>
-                            <li onclick="loadContent('premium', 'clasa8-exercitii')">Exerciții</li>
-                            <li onclick="loadContent('premium', 'clasa8-teste')">Teste</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="section-card">
-                        <h3>📖 Clasa a IX-a</h3>
-                        <ul>
-                            <li onclick="loadContent('premium', 'clasa9-lectii')">Lecții</li>
-                            <li onclick="loadContent('premium', 'clasa9-exercitii')">Exerciții</li>
-                            <li onclick="loadContent('premium', 'clasa9-teste')">Teste</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="section-card">
-                        <h3>📖 Clasa a X-a</h3>
-                        <ul>
-                            <li onclick="loadContent('premium', 'clasa10-lectii')">Lecții</li>
-                            <li onclick="loadContent('premium', 'clasa10-exercitii')">Exerciții</li>
-                            <li onclick="loadContent('premium', 'clasa10-teste')">Teste</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="section-card">
-                        <h3>📖 Clasa a XI-a</h3>
-                        <ul>
-                            <li onclick="loadContent('premium', 'clasa11-lectii')">Lecții</li>
-                            <li onclick="loadContent('premium', 'clasa11-exercitii')">Exerciții</li>
-                            <li onclick="loadContent('premium', 'clasa11-teste')">Teste</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="section-card">
-                        <h3>📖 Clasa a XII-a</h3>
-                        <ul>
-                            <li onclick="loadContent('premium', 'clasa12-lectii')">Lecții</li>
-                            <li onclick="loadContent('premium', 'clasa12-exercitii')">Exerciții</li>
-                            <li onclick="loadContent('premium', 'clasa12-teste')">Teste</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div style="text-align: center; margin-top: 3rem;">
-                    <button class="btn btn-primary" onclick="showPremiumModal()">Activează Premium</button>
-                    <button class="btn btn-secondary" onclick="startLiveSession()">Lecție Video Live</button>
                 </div>
             </div>
 
             <!-- Live Sessions Section -->
             <div id="live-sessions-content" class="tab-content">
-                <div class="live-sessions">
+                <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%); border-radius: var(--radius); padding: 2rem; margin: 2rem 0; border: 2px solid var(--secondary);">
                     <h2>🎥 Lecții Live cu Profesor</h2>
                     <p>Rezervă o sesiune individuală cu un profesor experimentat de matematică</p>
                     
                     <div class="section-grid">
-                        <div class="live-session-card">
+                        <div style="background: white; border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-left: 4px solid var(--secondary);">
                             <h3>📅 Programează o Lecție</h3>
                             <p><strong>Durată:</strong> 60 de minute</p>
                             <p><strong>Preț:</strong> 149 RON/sesiune</p>
@@ -886,7 +955,7 @@
                             <button class="btn btn-primary" onclick="bookLiveSession()">Rezervă Acum</button>
                         </div>
                         
-                        <div class="live-session-card">
+                        <div style="background: white; border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-left: 4px solid var(--secondary);">
                             <h3>🕒 Orare Disponibile</h3>
                             <p>Luni - Vineri: 14:00 - 20:00</p>
                             <p>Sâmbătă: 10:00 - 18:00</p>
@@ -930,7 +999,7 @@
                             <span class="forum-date">Acum 5 ore</span>
                         </div>
                         <h4>Resurse pentru Evaluare Națională</h4>
-                        <p>Am adăugat noi teste de antrenament în secțiunea gratuită. Verificați!</p>
+                        <p>Am adăugat noi teste de antrenament în secțiunea premium. Verificați!</p>
                     </div>
                 </div>
             </div>
@@ -974,6 +1043,7 @@
             <div id="dynamic-content" style="margin-top: 2rem;"></div>
         </div>
     </main>
+
     <!-- Footer -->
     <footer style="background: rgba(31, 41, 55, 0.95); color: white; padding: 3rem 0 1rem; margin-top: 4rem;">
         <div class="container">
@@ -984,10 +1054,10 @@
                 </div>
                 <div>
                     <h3 style="margin-bottom: 1rem;">Link-uri Rapide</h3>
-                    <a href="#home" style="color: #9ca3af; text-decoration: none; display: block; padding: 0.25rem 0;">Acasă</a>
-                    <a href="#free" style="color: #9ca3af; text-decoration: none; display: block; padding: 0.25rem 0;">Conținut Gratuit</a>
-                    <a href="#premium" style="color: #9ca3af; text-decoration: none; display: block; padding: 0.25rem 0;">Premium</a>
-                    <a href="#forum" style="color: #9ca3af; text-decoration: none; display: block; padding: 0.25rem 0;">Forum</a>
+                    <a href="#" onclick="showFreeContent()" style="color: #9ca3af; text-decoration: none; display: block; padding: 0.25rem 0;">Conținut Gratuit</a>
+                    <a href="#" onclick="showPremiumContent()" style="color: #9ca3af; text-decoration: none; display: block; padding: 0.25rem 0;">Premium</a>
+                    <a href="#" onclick="showForumContent()" style="color: #9ca3af; text-decoration: none; display: block; padding: 0.25rem 0;">Forum</a>
+                    <a href="#" onclick="showLiveSessionsContent()" style="color: #9ca3af; text-decoration: none; display: block; padding: 0.25rem 0;">Lecții Live</a>
                 </div>
                 <div>
                     <h3 style="margin-bottom: 1rem;">Contact</h3>
@@ -1050,13 +1120,6 @@
                     <label class="form-label">Parolă:</label>
                     <input type="password" class="form-input" id="subscribePassword" required>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Tip cont:</label>
-                    <select class="form-input" id="accountType">
-                        <option value="free">Gratuit</option>
-                        <option value="premium">Premium</option>
-                    </select>
-                </div>
                 <button type="submit" class="btn btn-primary" style="width: 100%;">Înregistrează-te</button>
             </form>
         </div>
@@ -1075,9 +1138,9 @@
                     <h3 style="font-size: 1.5rem; margin-bottom: 1rem; color: var(--dark);">Lunar</h3>
                     <div style="font-size: 3rem; font-weight: bold; color: var(--primary); margin-bottom: 1rem;">49 RON<span style="font-size: 1rem; color: #6b7280;">/lună</span></div>
                     <ul style="list-style: none; padding: 0; margin: 2rem 0;">
-                        <li style="padding: 0.75rem 0; border-bottom: 1px solid var(--light);">✓ Acces complet la toate lecțiile</li>
+                        <li style="padding: 0.75rem 0; border-bottom: 1px solid var(--light);">✓ Acces complet Evaluare Națională</li>
+                        <li style="padding: 0.75rem 0; border-bottom: 1px solid var(--light);">✓ Acces complet Bacalaureat</li>
                         <li style="padding: 0.75rem 0; border-bottom: 1px solid var(--light);">✓ Exerciții interactive nelimitate</li>
-                        <li style="padding: 0.75rem 0; border-bottom: 1px solid var(--light);">✓ Teste cu evaluare automată</li>
                         <li style="padding: 0.75rem 0;">✓ Forum premium</li>
                     </ul>
                     <button class="btn btn-primary" onclick="startCheckout('monthly')">Alege Plan</button>
@@ -1121,6 +1184,7 @@
 
     <!-- Jitsi Container -->
     <div id="jitsi-container" style="display:none; position: relative; width: 100%; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: var(--radius); box-shadow: var(--shadow);"></div>
+
     <script>
         // Supabase Configuration
         const SUPABASE_URL = 'https://rhyjhxfevfdaejiaksdg.supabase.co';
@@ -1219,7 +1283,7 @@
             }
         }
 
-        // Check subscription status - ENHANCED
+        // Check subscription status - ENHANCED to fix premium access
         async function checkSubscription() {
             if (!currentUser) return;
             
@@ -1229,6 +1293,7 @@
                     .select('*')
                     .eq('user_id', currentUser.id)
                     .eq('status', 'active')
+                    .gte('current_period_end', new Date().toISOString())
                     .single();
                 
                 if (data && !error) {
@@ -1246,6 +1311,15 @@
                 } else {
                     isPremium = false;
                     console.log('No active subscription found');
+                    
+                    // Update user account type to free if needed
+                    if (userData && userData.account_type === 'premium') {
+                        await supabase
+                            .from('users')
+                            .update({ account_type: 'free' })
+                            .eq('id', currentUser.id);
+                        userData.account_type = 'free';
+                    }
                 }
                 
                 return data;
@@ -1256,7 +1330,7 @@
             }
         }
 
-        // Update UI based on user state - COMPLETELY FIXED
+        // Update UI based on user state - FIXED
         function updateUI() {
             // User display elements
             const userDisplay = document.getElementById('userDisplay');
@@ -1269,7 +1343,6 @@
             
             // Buttons
             const adminBtn = document.getElementById('adminBtn');
-            const adminTab = document.getElementById('adminTab');
             const subscribeBtn = document.getElementById('subscribeBtn');
             const cancelSubscriptionBtn = document.getElementById('cancelSubscriptionBtn');
             const freeSignupPrompt = document.getElementById('freeSignupPrompt');
@@ -1281,7 +1354,7 @@
                 authButtons.style.display = 'none';
                 userButtons.style.display = 'flex';
                 
-                // Set user info - FIXED to show actual name
+                // Set user info
                 let displayName = 'Utilizator';
                 if (userData && userData.name) {
                     displayName = userData.name;
@@ -1303,13 +1376,11 @@
                 if (isAdmin) {
                     userBadges.innerHTML += '<span class="badge badge-admin">Admin</span>';
                     adminBtn.style.display = 'inline-block';
-                    adminTab.style.display = 'inline-block';
                 } else {
                     adminBtn.style.display = 'none';
-                    adminTab.style.display = 'none';
                 }
                 
-                // Show/hide subscription buttons - FIXED
+                // Show/hide subscription buttons
                 if (isPremium) {
                     subscribeBtn.style.display = 'none';
                     cancelSubscriptionBtn.style.display = 'inline-block';
@@ -1330,7 +1401,6 @@
                 authButtons.style.display = 'flex';
                 userButtons.style.display = 'none';
                 adminBtn.style.display = 'none';
-                adminTab.style.display = 'none';
                 
                 // Show signup prompts
                 if (freeSignupPrompt) {
@@ -1345,17 +1415,47 @@
             }
         }
 
-        // Tab switching
-        function switchTab(tabName, event) {
-            // Remove active class from all tabs and contents
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            
-            // Add active class to selected tab and content
-            if (event && event.target) {
-                event.target.classList.add('active');
+        // Navigation functions
+        function showHome() {
+            hideAllTabContent();
+            document.getElementById('home-free-section').style.display = 'block';
+        }
+
+        function showFreeContent() {
+            hideAllTabContent();
+            document.getElementById('free-content').classList.add('active');
+        }
+
+        function showPremiumContent() {
+            hideAllTabContent();
+            document.getElementById('premium-content').classList.add('active');
+        }
+
+        function showForumContent() {
+            hideAllTabContent();
+            document.getElementById('forum-content').classList.add('active');
+            loadForumPosts();
+        }
+
+        function showLiveSessionsContent() {
+            hideAllTabContent();
+            document.getElementById('live-sessions-content').classList.add('active');
+        }
+
+        function showAdminPanel() {
+            if (!isAdmin) {
+                showToast('Nu ai permisiuni de administrator!', 'error');
+                return;
             }
-            document.getElementById(`${tabName}-content`).classList.add('active');
+            hideAllTabContent();
+            document.getElementById('admin-content').classList.add('active');
+        }
+
+        function hideAllTabContent() {
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById('home-free-section').style.display = 'none';
         }
 
         // Modal functions
@@ -1368,7 +1468,6 @@
         }
 
         function showPremiumModal() {
-            // Check if user already has premium
             if (isPremium) {
                 showToast('Ai deja un abonament Premium activ!', 'info');
                 return;
@@ -1383,10 +1482,6 @@
                 return;
             }
             document.getElementById('newPostModal').classList.add('active');
-        }
-
-        function showAdminPanel() {
-            switchTab('admin', { target: document.getElementById('adminTab') });
         }
 
         function closeModal(modalId) {
@@ -1419,7 +1514,6 @@
             const name = document.getElementById('subscribeName').value;
             const email = document.getElementById('subscribeEmail').value;
             const password = document.getElementById('subscribePassword').value;
-            const accountType = document.getElementById('accountType').value;
             
             const { data, error } = await supabase.auth.signUp({
                 email: email,
@@ -1427,7 +1521,7 @@
                 options: {
                     data: {
                         name: name,
-                        account_type: accountType
+                        account_type: 'free'
                     }
                 }
             });
@@ -1437,10 +1531,6 @@
             } else {
                 showToast('Înregistrare reușită! Verifică email-ul pentru confirmare.', 'success');
                 closeModal('subscribeModal');
-                
-                if (accountType === 'premium') {
-                    setTimeout(() => showPremiumModal(), 1000);
-                }
             }
         }
 
@@ -1454,6 +1544,7 @@
                 userData = null;
                 isAdmin = false;
                 isPremium = false;
+                showHome();
                 updateUI();
             }
         }
@@ -1531,7 +1622,6 @@
                 showLoginModal();
                 return;
             }
-            
             bookLiveSession();
         }
 
@@ -1541,29 +1631,12 @@
                 showLoginModal();
                 return;
             }
-            
-            // First process payment
             await startCheckout('live_session');
         }
 
-        function startJitsiMeeting() {
-            const domain = 'meet.jit.si';
-            const options = {
-                roomName: 'MateLesson_' + Date.now(),
-                width: '100%',
-                height: 700,
-                parentNode: document.querySelector('#jitsi-container'),
-                userInfo: {
-                    displayName: (userData?.name || currentUser?.email || 'Guest')
-                }
-            };
-            
-            document.getElementById('jitsi-container').style.display = 'block';
-            const api = new JitsiMeetExternalAPI(domain, options);
-        }
-
-        // Content loading - ENHANCED
+        // Content loading - FIXED to properly check premium access
         async function loadContent(section, type) {
+            // Check premium access for premium content
             if (section === 'premium' && !isPremium) {
                 showToast('Trebuie să ai abonament premium pentru a accesa acest conținut!', 'error');
                 showPremiumModal();
@@ -1571,10 +1644,10 @@
             }
             
             const dynamicContent = document.getElementById('dynamic-content');
-            dynamicContent.innerHTML = '<div style="text-align: center; padding: 2rem;"><div class="spinner" style="border: 3px solid var(--light); border-top: 3px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 2rem auto;"></div></div>';
+            dynamicContent.innerHTML = '<div style="text-align: center; padding: 2rem;"><div class="spinner" style="border: 3px solid var(--light); border-top: 3px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 2rem auto;"></div><p>Se încarcă conținutul...</p></div>';
             
             try {
-                // Load content from database or GitHub
+                // Load content from database
                 const { data, error } = await supabase
                     .from('content')
                     .select('*')
@@ -1584,28 +1657,40 @@
                 
                 if (data && data.content_url) {
                     // Fetch content from GitHub
-                    const response = await fetch(data.content_url);
-                    const content = await response.text();
-                    dynamicContent.innerHTML = content;
+                    try {
+                        const response = await fetch(data.content_url);
+                        if (response.ok) {
+                            const content = await response.text();
+                            dynamicContent.innerHTML = content;
+                        } else {
+                            dynamicContent.innerHTML = generateDemoContent(section, type);
+                        }
+                    } catch (fetchError) {
+                        dynamicContent.innerHTML = generateDemoContent(section, type);
+                    }
                 } else {
                     // Show demo content
                     dynamicContent.innerHTML = generateDemoContent(section, type);
                 }
                 
-                // Track progress
+                // Track progress for logged in users
                 if (currentUser) {
                     trackProgress(type);
                 }
             } catch (error) {
+                console.error('Error loading content:', error);
                 dynamicContent.innerHTML = generateDemoContent(section, type);
             }
         }
 
         function generateDemoContent(section, type) {
-            if (type.includes('exercitii-interactive')) {
+            const sectionName = section === 'premium' ? 'Premium' : 'Gratuit';
+            const badgeHtml = section === 'premium' ? '<span class="premium-badge">PREMIUM</span>' : '';
+            
+            if (type.includes('exercitii') || type.includes('interactive')) {
                 return `
                     <div style="background: var(--light); border-radius: var(--radius); padding: 2rem; margin: 2rem 0;">
-                        <h3>Exercițiu Interactiv - ${section === 'premium' ? 'Premium' : 'Gratuit'}</h3>
+                        <h3>Exercițiu Interactiv ${badgeHtml}</h3>
                         <div style="font-size: 1.25rem; margin-bottom: 1.5rem; color: var(--dark);">
                             Rezolvă ecuația: 2x + 5 = 13
                         </div>
@@ -1621,7 +1706,7 @@
             } else if (type.includes('teste')) {
                 return `
                     <div style="background: var(--light); border-radius: var(--radius); padding: 2rem; margin: 2rem 0;">
-                        <h3>Test de Evaluare</h3>
+                        <h3>Test de Evaluare ${badgeHtml}</h3>
                         <div style="width: 100%; height: 10px; background: var(--light); border-radius: 5px; overflow: hidden; margin: 1rem 0;">
                             <div style="height: 100%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); border-radius: 5px; width: 30%;"></div>
                         </div>
@@ -1630,21 +1715,22 @@
                             Care este derivata funcției f(x) = x²?
                         </div>
                         <div style="display: flex; flex-direction: column; gap: 1rem;">
-                            <div style="background: white; padding: 1rem; border-radius: var(--radius);">f'(x) = x</div>
-                            <div style="background: white; padding: 1rem; border-radius: var(--radius);">f'(x) = 2x</div>
-                            <div style="background: white; padding: 1rem; border-radius: var(--radius);">f'(x) = x²</div>
-                            <div style="background: white; padding: 1rem; border-radius: var(--radius);">f'(x) = 2</div>
+                            <div style="background: white; padding: 1rem; border-radius: var(--radius); cursor: pointer;" onclick="checkAnswer(this, false)">f'(x) = x</div>
+                            <div style="background: white; padding: 1rem; border-radius: var(--radius); cursor: pointer;" onclick="checkAnswer(this, true)">f'(x) = 2x</div>
+                            <div style="background: white; padding: 1rem; border-radius: var(--radius); cursor: pointer;" onclick="checkAnswer(this, false)">f'(x) = x²</div>
+                            <div style="background: white; padding: 1rem; border-radius: var(--radius); cursor: pointer;" onclick="checkAnswer(this, false)">f'(x) = 2</div>
                         </div>
                         <button class="btn btn-primary" style="margin-top: 1rem;">Verifică Răspuns</button>
                     </div>
                 `;
             } else {
                 return `
-                    <div style="padding: 2rem;">
-                        <h3>${type.replace('-', ' ').toUpperCase()}</h3>
+                    <div style="padding: 2rem; background: white; border-radius: var(--radius); margin: 2rem 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                        <h3>${type.replace('-', ' ').toUpperCase()} ${badgeHtml}</h3>
                         <p>Conținutul pentru această secțiune va fi disponibil în curând.</p>
-                        <p>Secțiune: ${section === 'premium' ? 'Premium 🌟' : 'Gratuit'}</p>
-                        ${section === 'premium' ? '<p class="premium-badge">Conținut exclusiv pentru abonați</p>' : ''}
+                        <p><strong>Secțiune:</strong> ${sectionName}</p>
+                        <p><strong>Tip conținut:</strong> ${type}</p>
+                        ${section === 'premium' ? '<div class="premium-badge" style="margin-top: 1rem;">Conținut exclusiv pentru abonați Premium</div>' : ''}
                     </div>
                 `;
             }
@@ -1667,11 +1753,11 @@
                     element.style.borderColor = 'var(--danger)';
                     showToast('Încearcă din nou!', 'error');
                 }
-            }, 500);
+            }, 200);
         }
 
         function nextExercise() {
-            loadContent('free', 'en-exercitii-interactive');
+            loadContent('free', 'clasa5-exercitii');
         }
 
         // Admin functions
@@ -1689,7 +1775,9 @@
                                 section: section, 
                                 type: type, 
                                 content_url: url,
-                                created_by: currentUser.id
+                                created_by: currentUser.id,
+                                title: type.replace('-', ' ').toUpperCase(),
+                                content_type: type.includes('lectii') ? 'lesson' : type.includes('exercitii') ? 'exercise' : 'test'
                             }
                         ]);
                     
@@ -1732,7 +1820,9 @@
                             section: section,
                             type: category,
                             content_url: url,
-                            created_by: currentUser.id
+                            created_by: currentUser.id,
+                            title: category.replace('-', ' ').toUpperCase(),
+                            content_type: category.includes('lectii') ? 'lesson' : category.includes('exercitii') ? 'exercise' : 'test'
                         }
                     ]);
                 
@@ -1743,6 +1833,8 @@
                     document.getElementById('githubUrl').value = '';
                     document.getElementById('contentCategory').value = '';
                 }
+            } else {
+                showToast('Completează toate câmpurile!', 'error');
             }
         }
 
@@ -1771,6 +1863,8 @@
             } else {
                 showToast('Postare creată cu succes!', 'success');
                 closeModal('newPostModal');
+                document.getElementById('postTitle').value = '';
+                document.getElementById('postContent').value = '';
                 loadForumPosts();
             }
         }
@@ -1782,13 +1876,13 @@
                 .order('created_at', { ascending: false })
                 .limit(10);
             
-            if (data) {
+            if (data && data.length > 0) {
                 const postsContainer = document.getElementById('forum-posts');
                 postsContainer.innerHTML = data.map(post => `
                     <div class="forum-post">
                         <div class="forum-header">
                             <span class="forum-author">${post.author_name}</span>
-                            <span class="forum-date">${new Date(post.created_at).toLocaleDateString()}</span>
+                            <span class="forum-date">${new Date(post.created_at).toLocaleDateString('ro-RO')}</span>
                         </div>
                         <h4>${post.title}</h4>
                         <p>${post.content}</p>
@@ -1807,7 +1901,8 @@
                     {
                         user_id: currentUser.id,
                         content_type: contentType,
-                        last_accessed: new Date().toISOString()
+                        last_accessed: new Date().toISOString(),
+                        progress_percentage: 10
                     }
                 ], { onConflict: 'user_id,content_type' });
         }
@@ -1824,18 +1919,8 @@
             
             setTimeout(() => {
                 toast.remove();
-            }, 3000);
+            }, 4000);
         }
-
-        // Add CSS for spinner animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-            }
-        `;
-        document.head.appendChild(style);
 
         // Initialize app on load
         document.addEventListener('DOMContentLoaded', initApp);
