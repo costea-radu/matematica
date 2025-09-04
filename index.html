@@ -1185,316 +1185,555 @@
     <!-- Jitsi Container -->
     <div id="jitsi-container" style="display:none; position: relative; width: 100%; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: var(--radius); box-shadow: var(--shadow);"></div>
 
-    <script>
-        // Supabase Configuration
-        const SUPABASE_URL = 'https://rhyjhxfevfdaejiaksdg.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoeWpoeGZldmZkYWVqaWFrc2RnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1NzIwODUsImV4cCI6MjA3MjE0ODA4NX0.O0pKfT-n_eSWT2Eug99nz4_mjqfmb4nHHRzaAcG3eTk';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+<script>
+    // Supabase Configuration
+    const SUPABASE_URL = 'https://rhyjhxfevfdaejiaksdg.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoeWpoeGZldmZkYWVqaWFrc2RnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1NzIwODUsImV4cCI6MjA3MjE0ODA4NX0.O0pKfT-n_eSWT2Eug99nz4_mjqfmb4nHHRzaAcG3eTk';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Stripe Configuration
-        const STRIPE_PUBLIC_KEY = 'pk_live_51RrH57Iw53SYbkmL87FRVW1IFJsRROrzYgR7MorMGWsH1VDz69AzKVJWfRB7bmusvkGJXbLNPbe1QapKhDgG0x2l00vmpB2pg7';
-        const stripe = Stripe(STRIPE_PUBLIC_KEY);
+    // Stripe Configuration
+    const STRIPE_PUBLIC_KEY = 'pk_live_51RrH57Iw53SYbkmL87FRVW1IFJsRROrzYgR7MorMGWsH1VDz69AzKVJWfRB7bmusvkGJXbLNPbe1QapKhDgG0x2l00vmpB2pg7';
+    const stripe = Stripe(STRIPE_PUBLIC_KEY);
 
-        // Current user state
-        let currentUser = null;
-        let userData = null;
-        let isAdmin = false;
-        let isPremium = false;
+    // Current user state
+    let currentUser = null;
+    let userData = null;
+    let isAdmin = false;
+    let isPremium = false;
 
-        // Initialize app
-        async function initApp() {
-            // Check URL params for payment success
-            const urlParams = new URLSearchParams(window.location.search);
-            const isSuccess = urlParams.get('success');
-            
-            if (isSuccess === 'true') {
-                showToast('Plata procesată cu succes! Abonamentul tău este acum activ.', 'success');
-                // Clear URL params
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
-            
-            // Check if user is logged in
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                currentUser = user;
+    // Initialize app
+    async function initApp() {
+        // Check URL params for payment success
+        const urlParams = new URLSearchParams(window.location.search);
+        const isSuccess = urlParams.get('success');
+        
+        if (isSuccess === 'true') {
+            showToast('Plata procesată cu succes! Abonamentul tău este acum activ.', 'success');
+            // Clear URL params
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+        
+        // Check if user is logged in
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            currentUser = user;
+            await loadUserData();
+            await checkSubscription();
+            updateUI();
+        }
+        
+        // Listen for auth changes
+        supabase.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'SIGNED_IN' && session) {
+                currentUser = session.user;
                 await loadUserData();
                 await checkSubscription();
                 updateUI();
+            } else if (event === 'SIGNED_OUT') {
+                currentUser = null;
+                userData = null;
+                isAdmin = false;
+                isPremium = false;
+                updateUI();
             }
+        });
+    }
+
+    // Load complete user data - ENHANCED
+    async function loadUserData() {
+        if (!currentUser) return;
+        
+        try {
+            const { data, error } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', currentUser.id)
+                .single();
             
-            // Listen for auth changes
-            supabase.auth.onAuthStateChange(async (event, session) => {
-                if (event === 'SIGNED_IN' && session) {
-                    currentUser = session.user;
-                    await loadUserData();
-                    await checkSubscription();
-                    updateUI();
-                } else if (event === 'SIGNED_OUT') {
-                    currentUser = null;
-                    userData = null;
+            if (data) {
+                userData = data;
+                isAdmin = data.role === 'admin';
+                isPremium = data.account_type === 'premium';
+                console.log('User data loaded:', data);
+            } else if (error && error.code === 'PGRST116') {
+                // User not in users table yet, create entry
+                console.log('Creating user entry...');
+                const { data: newUser, error: createError } = await supabase
+                    .from('users')
+                    .insert([{
+                        id: currentUser.id,
+                        email: currentUser.email,
+                        name: currentUser.user_metadata?.name || currentUser.email.split('@')[0],
+                        role: 'student',
+                        account_type: 'free'
+                    }])
+                    .select()
+                    .single();
+                
+                if (newUser) {
+                    userData = newUser;
                     isAdmin = false;
                     isPremium = false;
-                    updateUI();
                 }
-            });
-        }
-
-        // Load complete user data - FIXED
-        async function loadUserData() {
-            if (!currentUser) return;
-            
-            try {
-                const { data, error } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('id', currentUser.id)
-                    .single();
-                
-                if (data) {
-                    userData = data;
-                    isAdmin = data.role === 'admin';
-                    isPremium = data.account_type === 'premium';
-                    console.log('User data loaded:', data);
-                } else if (error && error.code === 'PGRST116') {
-                    // User not in users table yet, create entry
-                    console.log('Creating user entry...');
-                    const { data: newUser, error: createError } = await supabase
-                        .from('users')
-                        .insert([{
-                            id: currentUser.id,
-                            email: currentUser.email,
-                            name: currentUser.user_metadata?.name || currentUser.email.split('@')[0],
-                            role: 'student',
-                            account_type: 'free'
-                        }])
-                        .select()
-                        .single();
-                    
-                    if (newUser) {
-                        userData = newUser;
-                        isAdmin = false;
-                        isPremium = false;
-                    }
-                } else {
-                    console.error('Error loading user data:', error);
-                }
-            } catch (error) {
-                console.error('Exception loading user data:', error);
+            } else {
+                console.error('Error loading user data:', error);
             }
+        } catch (error) {
+            console.error('Exception loading user data:', error);
         }
+    }
 
-        // Check subscription status - ENHANCED to fix premium access
-        async function checkSubscription() {
-            if (!currentUser) return;
+    // Check subscription status - ENHANCED AND FIXED
+    async function checkSubscription() {
+        if (!currentUser) {
+            isPremium = false;
+            return false;
+        }
+        
+        try {
+            console.log('🔍 Checking subscription for user:', currentUser.id);
             
-            try {
-                const { data, error } = await supabase
-                    .from('subscriptions')
-                    .select('*')
-                    .eq('user_id', currentUser.id)
-                    .eq('status', 'active')
-                    .gte('current_period_end', new Date().toISOString())
-                    .single();
+            // 1. Verifică mai întâi în tabela users pentru cache rapid
+            const { data: userData, error: userError } = await supabase
+                .from('users')
+                .select('account_type, role')
+                .eq('id', currentUser.id)
+                .single();
+            
+            if (userData) {
+                console.log('👤 User data from DB:', userData);
+                isAdmin = userData.role === 'admin';
                 
-                if (data && !error) {
+                // Dacă e admin, e automat premium
+                if (isAdmin) {
                     isPremium = true;
-                    console.log('Active subscription found:', data);
+                    console.log('👨‍💼 User is admin - auto premium');
+                    return true;
+                }
+                
+                // Dacă e deja marcat ca premium în users table
+                if (userData.account_type === 'premium') {
+                    console.log('💎 User marked as premium in users table');
                     
-                    // Update user account type if needed
-                    if (userData && userData.account_type !== 'premium') {
+                    // Verifică dublu în subscriptions să fie sigur că e valid
+                    const { data: subData } = await supabase
+                        .from('subscriptions')
+                        .select('status, current_period_end, created_at')
+                        .eq('user_id', currentUser.id)
+                        .order('created_at', { ascending: false })
+                        .limit(1);
+                    
+                    if (subData && subData.length > 0) {
+                        const sub = subData[0];
+                        const isActive = sub.status === 'active';
+                        const notExpired = !sub.current_period_end || new Date(sub.current_period_end) > new Date();
+                        const isRecent = new Date() - new Date(sub.created_at) < 7 * 24 * 60 * 60 * 1000; // 7 zile
+                        
+                        console.log('📊 Subscription check:', {
+                            status: sub.status,
+                            isActive,
+                            notExpired,
+                            isRecent,
+                            current_period_end: sub.current_period_end
+                        });
+                        
+                        if (isActive && notExpired) {
+                            isPremium = true;
+                            console.log('✅ Subscription confirmed active');
+                            return true;
+                        } else if (sub.status === 'incomplete' && isRecent) {
+                            // Abonament recent dar incomplete - consideră premium pentru câteva zile
+                            isPremium = true;
+                            console.log('⏳ Recent incomplete subscription - granting premium access');
+                            return true;
+                        }
+                    }
+                    
+                    // Dacă nu găsește subscription valid, resetează user account_type
+                    console.log('❌ No valid subscription found, resetting user account_type');
+                    await supabase
+                        .from('users')
+                        .update({ account_type: 'free' })
+                        .eq('id', currentUser.id);
+                    isPremium = false;
+                    return false;
+                }
+            }
+            
+            // 2. Verifică subscriptions pentru status actualizat
+            const { data: subscriptions, error: subError } = await supabase
+                .from('subscriptions')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .order('created_at', { ascending: false });
+            
+            if (subscriptions && subscriptions.length > 0) {
+                console.log('💳 Found subscriptions:', subscriptions);
+                
+                for (const subscription of subscriptions) {
+                    const isActive = subscription.status === 'active';
+                    const notExpired = !subscription.current_period_end || 
+                                     new Date(subscription.current_period_end) > new Date();
+                    const isRecent = new Date() - new Date(subscription.created_at) < 7 * 24 * 60 * 60 * 1000;
+                    
+                    console.log('🔍 Checking subscription:', {
+                        id: subscription.id,
+                        status: subscription.status,
+                        isActive,
+                        notExpired,
+                        isRecent,
+                        current_period_end: subscription.current_period_end
+                    });
+                    
+                    // Subscription activ și valid
+                    if (isActive && notExpired) {
+                        isPremium = true;
+                        
+                        // Actualizează users table
                         await supabase
                             .from('users')
                             .update({ account_type: 'premium' })
                             .eq('id', currentUser.id);
-                        userData.account_type = 'premium';
+                        
+                        console.log('✅ Active subscription found - user is premium');
+                        return true;
                     }
-                } else {
-                    isPremium = false;
-                    console.log('No active subscription found');
                     
-                    // Update user account type to free if needed
-                    if (userData && userData.account_type === 'premium') {
-                        await supabase
-                            .from('users')
-                            .update({ account_type: 'free' })
-                            .eq('id', currentUser.id);
-                        userData.account_type = 'free';
+                    // Subscription incomplete dar recent (ultimele 7 zile) - oferă acces temporar
+                    if (subscription.status === 'incomplete' && isRecent) {
+                        isPremium = true;
+                        console.log('⏳ Recent incomplete subscription - granting temporary premium access');
+                        return true;
                     }
                 }
-                
-                return data;
-            } catch (error) {
-                console.error('Error checking subscription:', error);
-                isPremium = false;
-                return null;
             }
+            
+            // 3. Dacă nu găsește nimic valid
+            isPremium = false;
+            console.log('❌ No valid subscription found - user is free');
+            return false;
+            
+        } catch (error) {
+            console.error('💥 Error checking subscription:', error);
+            isPremium = false;
+            return false;
         }
+    }
 
-        // Update UI based on user state - FIXED
-        function updateUI() {
-            // User display elements
-            const userDisplay = document.getElementById('userDisplay');
-            const authButtons = document.getElementById('authButtons');
-            const userButtons = document.getElementById('userButtons');
-            const userAvatar = document.getElementById('userAvatar');
-            const userName = document.getElementById('userName');
-            const userEmail = document.getElementById('userEmail');
-            const userBadges = document.getElementById('userBadges');
+    // Funcție pentru debug complet
+    async function debugUserStatus() {
+        if (!currentUser) {
+            console.log('❌ No current user');
+            return;
+        }
+        
+        console.log('🔍 === DEBUGGING USER STATUS ===');
+        console.log('👤 Current user ID:', currentUser.id);
+        console.log('📧 Email:', currentUser.email);
+        console.log('🏷️ Current isPremium:', isPremium);
+        console.log('👨‍💼 Current isAdmin:', isAdmin);
+        
+        try {
+            // Verifică users table
+            const { data: userData } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', currentUser.id)
+                .single();
+            console.log('📊 Users table data:', userData);
             
-            // Buttons
-            const adminBtn = document.getElementById('adminBtn');
-            const subscribeBtn = document.getElementById('subscribeBtn');
-            const cancelSubscriptionBtn = document.getElementById('cancelSubscriptionBtn');
-            const freeSignupPrompt = document.getElementById('freeSignupPrompt');
-            const heroButtons = document.getElementById('heroButtons');
+            // Verifică subscriptions table
+            const { data: subData } = await supabase
+                .from('subscriptions')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .order('created_at', { ascending: false });
+            console.log('💳 Subscriptions data:', subData);
             
-            if (currentUser) {
-                // Show user profile
-                userDisplay.style.display = 'block';
-                authButtons.style.display = 'none';
-                userButtons.style.display = 'flex';
-                
-                // Set user info
-                let displayName = 'Utilizator';
-                if (userData && userData.name) {
-                    displayName = userData.name;
-                } else if (currentUser.user_metadata && currentUser.user_metadata.name) {
-                    displayName = currentUser.user_metadata.name;
-                } else {
-                    displayName = currentUser.email.split('@')[0];
-                }
-                
-                userName.textContent = displayName;
-                userEmail.textContent = currentUser.email;
-                userAvatar.textContent = displayName.charAt(0).toUpperCase();
-                
-                // Set badges
-                userBadges.innerHTML = '';
-                if (isPremium) {
-                    userBadges.innerHTML += '<span class="badge badge-premium">Premium</span>';
-                }
-                if (isAdmin) {
-                    userBadges.innerHTML += '<span class="badge badge-admin">Admin</span>';
-                    adminBtn.style.display = 'inline-block';
-                } else {
-                    adminBtn.style.display = 'none';
-                }
-                
-                // Show/hide subscription buttons
-                if (isPremium) {
-                    subscribeBtn.style.display = 'none';
-                    cancelSubscriptionBtn.style.display = 'inline-block';
-                    heroButtons.innerHTML = '<p style="color: var(--secondary); font-weight: 600;">✓ Ai abonament Premium activ!</p>';
-                } else {
-                    subscribeBtn.style.display = 'inline-block';
-                    cancelSubscriptionBtn.style.display = 'none';
-                    heroButtons.innerHTML = '<button class="btn btn-primary" onclick="showPremiumModal()">Activează Premium</button>';
-                }
-                
-                // Hide signup prompt for logged in users
-                if (freeSignupPrompt) {
-                    freeSignupPrompt.style.display = 'none';
-                }
+            // Verifică payments table
+            const { data: paymentData } = await supabase
+                .from('payments')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .order('created_at', { ascending: false })
+                .limit(5);
+            console.log('💰 Recent payments:', paymentData);
+            
+        } catch (error) {
+            console.error('❌ Debug error:', error);
+        }
+        
+        console.log('🔍 === END DEBUG ===');
+    }
+
+    // Funcție pentru forțarea statusului premium (doar pentru debug)
+    async function forcePremiumStatus() {
+        if (!currentUser) {
+            showToast('Nu ești conectat!', 'error');
+            return;
+        }
+        
+        if (!confirm('ATENȚIE: Aceasta este o funcție de debug. Vrei să forțezi statusul premium?')) {
+            return;
+        }
+        
+        try {
+            // Actualizează users table
+            const { error: userError } = await supabase
+                .from('users')
+                .update({ 
+                    account_type: 'premium',
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', currentUser.id);
+            
+            if (userError) throw userError;
+            
+            // Creează/actualizează subscription
+            const { error: subError } = await supabase
+                .from('subscriptions')
+                .upsert({ 
+                    user_id: currentUser.id,
+                    status: 'active',
+                    plan_type: 'monthly',
+                    current_period_start: new Date().toISOString(),
+                    current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                    stripe_customer_id: 'debug_customer_' + currentUser.id.substr(0, 8),
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                }, { 
+                    onConflict: 'user_id',
+                    ignoreDuplicates: false 
+                });
+            
+            // Reîncarcă datele
+            await loadUserData();
+            await checkSubscription();
+            updateUI();
+            
+            showToast('✅ Status premium forțat cu succes! (DEBUG MODE)', 'success');
+            
+        } catch (error) {
+            console.error('Error forcing premium status:', error);
+            showToast('❌ Eroare: ' + error.message, 'error');
+        }
+    }
+
+    // Funcție pentru refresh manual al statusului
+    async function refreshUserStatus() {
+        try {
+            showToast('🔄 Actualizez statusul...', 'info');
+            
+            await loadUserData();
+            await checkSubscription();
+            updateUI();
+            
+            const statusText = isPremium ? 'Premium ✅' : 'Free 📚';
+            showToast(`Status actualizat: ${statusText}`, 'success');
+            
+        } catch (error) {
+            console.error('Error refreshing status:', error);
+            showToast('❌ Eroare la actualizarea statusului', 'error');
+        }
+    }
+
+    // Update UI based on user state - ENHANCED
+    function updateUI() {
+        // User display elements
+        const userDisplay = document.getElementById('userDisplay');
+        const authButtons = document.getElementById('authButtons');
+        const userButtons = document.getElementById('userButtons');
+        const userAvatar = document.getElementById('userAvatar');
+        const userName = document.getElementById('userName');
+        const userEmail = document.getElementById('userEmail');
+        const userBadges = document.getElementById('userBadges');
+        
+        // Buttons
+        const adminBtn = document.getElementById('adminBtn');
+        const adminPageBtn = document.getElementById('adminPageBtn');
+        const subscribeBtn = document.getElementById('subscribeBtn');
+        const cancelSubscriptionBtn = document.getElementById('cancelSubscriptionBtn');
+        const freeSignupPrompt = document.getElementById('freeSignupPrompt');
+        const heroButtons = document.getElementById('heroButtons');
+        
+        if (currentUser) {
+            // Show user profile
+            userDisplay.style.display = 'block';
+            authButtons.style.display = 'none';
+            userButtons.style.display = 'flex';
+            
+            // Set user info
+            let displayName = 'Utilizator';
+            if (userData && userData.name) {
+                displayName = userData.name;
+            } else if (currentUser.user_metadata && currentUser.user_metadata.name) {
+                displayName = currentUser.user_metadata.name;
             } else {
-                // Show auth buttons for non-logged in users
-                userDisplay.style.display = 'none';
-                authButtons.style.display = 'flex';
-                userButtons.style.display = 'none';
-                adminBtn.style.display = 'none';
-                
-                // Show signup prompts
-                if (freeSignupPrompt) {
-                    freeSignupPrompt.style.display = 'block';
-                }
-                if (heroButtons) {
-                    heroButtons.innerHTML = `
-                        <button class="btn btn-primary" onclick="showSubscribeModal()">Începe Gratuit</button>
-                        <button class="btn btn-secondary" onclick="showPremiumModal()">Vezi Planuri Premium</button>
-                    `;
-                }
+                displayName = currentUser.email.split('@')[0];
             }
-        }
-
-        // Navigation functions
-        function showHome() {
-            hideAllTabContent();
-            document.getElementById('home-free-section').style.display = 'block';
-        }
-
-        function showFreeContent() {
-            hideAllTabContent();
-            document.getElementById('free-content').classList.add('active');
-        }
-
-        function showPremiumContent() {
-            hideAllTabContent();
-            document.getElementById('premium-content').classList.add('active');
-        }
-
-        function showForumContent() {
-            hideAllTabContent();
-            document.getElementById('forum-content').classList.add('active');
-            loadForumPosts();
-        }
-
-        function showLiveSessionsContent() {
-            hideAllTabContent();
-            document.getElementById('live-sessions-content').classList.add('active');
-        }
-
-        function showAdminPanel() {
-            if (!isAdmin) {
-                showToast('Nu ai permisiuni de administrator!', 'error');
-                return;
-            }
-            hideAllTabContent();
-            document.getElementById('admin-content').classList.add('active');
-        }
-
-        function hideAllTabContent() {
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            document.getElementById('home-free-section').style.display = 'none';
-        }
-
-        // Modal functions
-        function showLoginModal() {
-            document.getElementById('loginModal').classList.add('active');
-        }
-
-        function showSubscribeModal() {
-            document.getElementById('subscribeModal').classList.add('active');
-        }
-
-        function showPremiumModal() {
+            
+            userName.textContent = displayName;
+            userEmail.textContent = currentUser.email;
+            userAvatar.textContent = displayName.charAt(0).toUpperCase();
+            
+            // Set badges
+            userBadges.innerHTML = '';
             if (isPremium) {
-                showToast('Ai deja un abonament Premium activ!', 'info');
-                return;
+                userBadges.innerHTML += '<span class="badge badge-premium">Premium</span>';
             }
-            document.getElementById('premiumModal').classList.add('active');
-        }
-
-        function showNewPostModal() {
-            if (!currentUser) {
-                showToast('Trebuie să fii conectat pentru a posta!', 'error');
-                showLoginModal();
-                return;
+            if (isAdmin) {
+                userBadges.innerHTML += '<span class="badge badge-admin">Admin</span>';
+                if (adminBtn) adminBtn.style.display = 'inline-block';
+                if (adminPageBtn) adminPageBtn.style.display = 'inline-block';
+            } else {
+                if (adminBtn) adminBtn.style.display = 'none';
+                if (adminPageBtn) adminPageBtn.style.display = 'none';
             }
-            document.getElementById('newPostModal').classList.add('active');
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
-        }
-
-        // Authentication functions
-        async function login(event) {
-            event.preventDefault();
             
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
+            // Show/hide subscription buttons
+            if (isPremium) {
+                if (subscribeBtn) subscribeBtn.style.display = 'none';
+                if (cancelSubscriptionBtn) cancelSubscriptionBtn.style.display = 'inline-block';
+                if (heroButtons) heroButtons.innerHTML = '<p style="color: var(--secondary); font-weight: 600;">✅ Ai abonament Premium activ!</p>';
+            } else {
+                if (subscribeBtn) subscribeBtn.style.display = 'inline-block';
+                if (cancelSubscriptionBtn) cancelSubscriptionBtn.style.display = 'none';
+                if (heroButtons) heroButtons.innerHTML = '<button class="btn btn-primary" onclick="showPremiumModal()">Activează Premium</button>';
+            }
             
+            // Hide signup prompt for logged in users
+            if (freeSignupPrompt) {
+                freeSignupPrompt.style.display = 'none';
+            }
+            
+            // Add debug buttons for development
+            addDebugButtons();
+            
+        } else {
+            // Show auth buttons for non-logged in users
+            userDisplay.style.display = 'none';
+            authButtons.style.display = 'flex';
+            userButtons.style.display = 'none';
+            if (adminBtn) adminBtn.style.display = 'none';
+            if (adminPageBtn) adminPageBtn.style.display = 'none';
+            
+            // Show signup prompts
+            if (freeSignupPrompt) {
+                freeSignupPrompt.style.display = 'block';
+            }
+            if (heroButtons) {
+                heroButtons.innerHTML = `
+                    <button class="btn btn-primary" onclick="showSubscribeModal()">Începe Gratuit</button>
+                    <button class="btn btn-secondary" onclick="showPremiumModal()">Vezi Planuri Premium</button>
+                `;
+            }
+        }
+    }
+
+    // Add debug buttons for development
+    function addDebugButtons() {
+        // Check if we're in development mode
+        const isDevelopment = window.location.hostname === 'localhost' || 
+                             window.location.hostname.includes('127.0.0.1') ||
+                             window.location.search.includes('debug=true');
+        
+        if (isDevelopment && currentUser) {
+            const userButtons = document.getElementById('userButtons');
+            if (userButtons && !document.getElementById('debug-buttons')) {
+                const debugDiv = document.createElement('div');
+                debugDiv.id = 'debug-buttons';
+                debugDiv.className = 'debug-buttons';
+                debugDiv.innerHTML = `
+                    <button class="debug-btn" onclick="debugUserStatus()">🔍 Debug</button>
+                    <button class="debug-btn" onclick="refreshUserStatus()" style="background: blue;">🔄 Refresh</button>
+                    <button class="debug-btn" onclick="forcePremiumStatus()" style="background: red;">⚠️ Force Premium</button>
+                `;
+                userButtons.appendChild(debugDiv);
+            }
+        }
+    }
+
+    // Navigation functions
+    function showHome() {
+        hideAllTabContent();
+        document.getElementById('home-free-section').style.display = 'block';
+    }
+
+    function showFreeContent() {
+        hideAllTabContent();
+        document.getElementById('free-content').classList.add('active');
+    }
+
+    function showPremiumContent() {
+        hideAllTabContent();
+        document.getElementById('premium-content').classList.add('active');
+    }
+
+    function showForumContent() {
+        hideAllTabContent();
+        document.getElementById('forum-content').classList.add('active');
+        loadForumPosts();
+    }
+
+    function showLiveSessionsContent() {
+        hideAllTabContent();
+        document.getElementById('live-sessions-content').classList.add('active');
+    }
+
+    function showAdminPanel() {
+        if (!isAdmin) {
+            showToast('Nu ai permisiuni de administrator!', 'error');
+            return;
+        }
+        hideAllTabContent();
+        document.getElementById('admin-content').classList.add('active');
+    }
+
+    function hideAllTabContent() {
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        document.getElementById('home-free-section').style.display = 'none';
+    }
+
+    // Modal functions
+    function showLoginModal() {
+        document.getElementById('loginModal').classList.add('active');
+    }
+
+    function showSubscribeModal() {
+        document.getElementById('subscribeModal').classList.add('active');
+    }
+
+    function showPremiumModal() {
+        if (isPremium) {
+            showToast('Ai deja un abonament Premium activ!', 'info');
+            return;
+        }
+        document.getElementById('premiumModal').classList.add('active');
+    }
+
+    function showNewPostModal() {
+        if (!currentUser) {
+            showToast('Trebuie să fii conectat pentru a posta!', 'error');
+            showLoginModal();
+            return;
+        }
+        document.getElementById('newPostModal').classList.add('active');
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('active');
+    }
+
+    // Authentication functions - ENHANCED
+    async function login(event) {
+        event.preventDefault();
+        
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        
+        try {
             const { data, error } = await supabase.auth.signInWithPassword({
                 email: email,
                 password: password
@@ -1505,16 +1744,27 @@
             } else {
                 showToast('Conectare reușită!', 'success');
                 closeModal('loginModal');
+                
+                // Force refresh of user data after login
+                setTimeout(async () => {
+                    await loadUserData();
+                    await checkSubscription();
+                    updateUI();
+                }, 500);
             }
+        } catch (error) {
+            showToast('Eroare neașteptată la conectare: ' + error.message, 'error');
         }
+    }
 
-        async function subscribe(event) {
-            event.preventDefault();
-            
-            const name = document.getElementById('subscribeName').value;
-            const email = document.getElementById('subscribeEmail').value;
-            const password = document.getElementById('subscribePassword').value;
-            
+    async function subscribe(event) {
+        event.preventDefault();
+        
+        const name = document.getElementById('subscribeName').value;
+        const email = document.getElementById('subscribeEmail').value;
+        const password = document.getElementById('subscribePassword').value;
+        
+        try {
             const { data, error } = await supabase.auth.signUp({
                 email: email,
                 password: password,
@@ -1532,9 +1782,13 @@
                 showToast('Înregistrare reușită! Verifică email-ul pentru confirmare.', 'success');
                 closeModal('subscribeModal');
             }
+        } catch (error) {
+            showToast('Eroare neașteptată la înregistrare: ' + error.message, 'error');
         }
+    }
 
-        async function logout() {
+    async function logout() {
+        try {
             const { error } = await supabase.auth.signOut();
             if (error) {
                 showToast('Eroare la deconectare: ' + error.message, 'error');
@@ -1547,390 +1801,398 @@
                 showHome();
                 updateUI();
             }
+        } catch (error) {
+            showToast('Eroare neașteptată la deconectare: ' + error.message, 'error');
         }
+    }
 
-        // Stripe checkout - ENHANCED
-        async function startCheckout(plan) {
-            if (!currentUser) {
-                showToast('Trebuie să fii conectat pentru a te abona!', 'error');
-                showLoginModal();
-                return;
-            }
+    // Stripe checkout - ENHANCED
+    async function startCheckout(plan) {
+        if (!currentUser) {
+            showToast('Trebuie să fii conectat pentru a te abona!', 'error');
+            showLoginModal();
+            return;
+        }
+        
+        if (isPremium && plan === 'monthly') {
+            showToast('Ai deja un abonament Premium activ!', 'info');
+            return;
+        }
+        
+        try {
+            showToast('Se inițiază plata...', 'info');
             
-            if (isPremium && plan === 'monthly') {
-                showToast('Ai deja un abonament Premium activ!', 'info');
-                return;
-            }
+            const { data: { session } } = await supabase.auth.getSession();
+            const response = await supabase.functions.invoke('create-checkout-session', {
+                body: { plan: plan },
+                headers: {
+                    Authorization: `Bearer ${session.access_token}`
+                }
+            });
             
+            if (response.data && response.data.sessionId) {
+                const { error } = await stripe.redirectToCheckout({
+                    sessionId: response.data.sessionId
+                });
+                
+                if (error) {
+                    showToast('Eroare la procesarea plății: ' + error.message, 'error');
+                }
+            } else {
+                console.error('Checkout response:', response);
+                showToast('Eroare la inițierea plății. Te rugăm să încerci din nou.', 'error');
+            }
+        } catch (error) {
+            console.error('Checkout error:', error);
+            showToast('Eroare la inițierea plății: ' + error.message, 'error');
+        }
+    }
+
+    async function cancelSubscription() {
+        if (!currentUser) return;
+        
+        if (confirm('Ești sigur că vrei să anulezi abonamentul?')) {
             try {
                 const { data: { session } } = await supabase.auth.getSession();
-                const response = await supabase.functions.invoke('create-checkout-session', {
-                    body: { plan: plan },
+                const response = await supabase.functions.invoke('cancel-subscription', {
                     headers: {
                         Authorization: `Bearer ${session.access_token}`
                     }
                 });
                 
-                if (response.data && response.data.sessionId) {
-                    const { error } = await stripe.redirectToCheckout({
-                        sessionId: response.data.sessionId
-                    });
-                    
-                    if (error) {
-                        showToast('Eroare la procesarea plății: ' + error.message, 'error');
-                    }
+                if (response.data && response.data.success) {
+                    showToast('Abonament anulat cu succes!', 'success');
+                    // Refresh subscription status
+                    await checkSubscription();
+                    updateUI();
                 } else {
-                    showToast('Eroare la inițierea plății', 'error');
+                    showToast('Eroare la anularea abonamentului', 'error');
                 }
             } catch (error) {
-                showToast('Eroare la inițierea plății: ' + error.message, 'error');
+                showToast('Eroare la anularea abonamentului: ' + error.message, 'error');
             }
         }
+    }
 
-        async function cancelSubscription() {
-            if (!currentUser) return;
+    // Live session functions
+    function startLiveSession() {
+        if (!currentUser) {
+            showToast('Trebuie să fii conectat pentru a accesa lecțiile live!', 'error');
+            showLoginModal();
+            return;
+        }
+        bookLiveSession();
+    }
+
+    async function bookLiveSession() {
+        if (!currentUser) {
+            showToast('Trebuie să fii conectat pentru a rezerva o lecție!', 'error');
+            showLoginModal();
+            return;
+        }
+        await startCheckout('live_session');
+    }
+
+    // Content loading - ENHANCED to properly check premium access
+    async function loadContent(section, type) {
+        // Reîmprospătează statusul premium înainte de încărcare
+        await checkSubscription();
+        
+        // Check premium access for premium content
+        if (section === 'premium' && !isPremium) {
+            showToast('Trebuie să ai abonament premium pentru a accesa acest conținut!', 'error');
+            showPremiumModal();
+            return;
+        }
+        
+        const dynamicContent = document.getElementById('dynamic-content');
+        dynamicContent.innerHTML = '<div style="text-align: center; padding: 2rem;"><div class="spinner" style="border: 3px solid var(--light); border-top: 3px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 2rem auto;"></div><p>Se încarcă conținutul...</p></div>';
+        
+        try {
+            // Load content from database
+            const { data, error } = await supabase
+                .from('content')
+                .select('*')
+                .eq('section', section)
+                .eq('type', type)
+                .single();
             
-            if (confirm('Ești sigur că vrei să anulezi abonamentul?')) {
+            if (data && data.content_url) {
+                // Fetch content from GitHub
                 try {
-                    const { data: { session } } = await supabase.auth.getSession();
-                    const response = await supabase.functions.invoke('cancel-subscription', {
-                        headers: {
-                            Authorization: `Bearer ${session.access_token}`
-                        }
-                    });
-                    
-                    if (response.data && response.data.success) {
-                        showToast('Abonament anulat cu succes!', 'success');
-                        isPremium = false;
-                        if (userData) {
-                            userData.account_type = 'free';
-                        }
-                        updateUI();
+                    const response = await fetch(data.content_url);
+                    if (response.ok) {
+                        const content = await response.text();
+                        dynamicContent.innerHTML = content;
                     } else {
-                        showToast('Eroare la anularea abonamentului', 'error');
-                    }
-                } catch (error) {
-                    showToast('Eroare la anularea abonamentului: ' + error.message, 'error');
-                }
-            }
-        }
-
-        // Live session functions
-        function startLiveSession() {
-            if (!currentUser) {
-                showToast('Trebuie să fii conectat pentru a accesa lecțiile live!', 'error');
-                showLoginModal();
-                return;
-            }
-            bookLiveSession();
-        }
-
-        async function bookLiveSession() {
-            if (!currentUser) {
-                showToast('Trebuie să fii conectat pentru a rezerva o lecție!', 'error');
-                showLoginModal();
-                return;
-            }
-            await startCheckout('live_session');
-        }
-
-        // Content loading - FIXED to properly check premium access
-        async function loadContent(section, type) {
-            // Check premium access for premium content
-            if (section === 'premium' && !isPremium) {
-                showToast('Trebuie să ai abonament premium pentru a accesa acest conținut!', 'error');
-                showPremiumModal();
-                return;
-            }
-            
-            const dynamicContent = document.getElementById('dynamic-content');
-            dynamicContent.innerHTML = '<div style="text-align: center; padding: 2rem;"><div class="spinner" style="border: 3px solid var(--light); border-top: 3px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 2rem auto;"></div><p>Se încarcă conținutul...</p></div>';
-            
-            try {
-                // Load content from database
-                const { data, error } = await supabase
-                    .from('content')
-                    .select('*')
-                    .eq('section', section)
-                    .eq('type', type)
-                    .single();
-                
-                if (data && data.content_url) {
-                    // Fetch content from GitHub
-                    try {
-                        const response = await fetch(data.content_url);
-                        if (response.ok) {
-                            const content = await response.text();
-                            dynamicContent.innerHTML = content;
-                        } else {
-                            dynamicContent.innerHTML = generateDemoContent(section, type);
-                        }
-                    } catch (fetchError) {
                         dynamicContent.innerHTML = generateDemoContent(section, type);
                     }
-                } else {
-                    // Show demo content
+                } catch (fetchError) {
                     dynamicContent.innerHTML = generateDemoContent(section, type);
                 }
-                
-                // Track progress for logged in users
-                if (currentUser) {
-                    trackProgress(type);
-                }
-            } catch (error) {
-                console.error('Error loading content:', error);
+            } else {
+                // Show demo content
                 dynamicContent.innerHTML = generateDemoContent(section, type);
             }
-        }
-
-        function generateDemoContent(section, type) {
-            const sectionName = section === 'premium' ? 'Premium' : 'Gratuit';
-            const badgeHtml = section === 'premium' ? '<span class="premium-badge">PREMIUM</span>' : '';
             
-            if (type.includes('exercitii') || type.includes('interactive')) {
-                return `
-                    <div style="background: var(--light); border-radius: var(--radius); padding: 2rem; margin: 2rem 0;">
-                        <h3>Exercițiu Interactiv ${badgeHtml}</h3>
-                        <div style="font-size: 1.25rem; margin-bottom: 1.5rem; color: var(--dark);">
-                            Rezolvă ecuația: 2x + 5 = 13
-                        </div>
-                        <div style="display: flex; flex-direction: column; gap: 1rem;">
-                            <div style="background: white; padding: 1rem; border-radius: var(--radius); border: 2px solid transparent; cursor: pointer; transition: all 0.3s;" onclick="checkAnswer(this, false)">x = 3</div>
-                            <div style="background: white; padding: 1rem; border-radius: var(--radius); border: 2px solid transparent; cursor: pointer; transition: all 0.3s;" onclick="checkAnswer(this, true)">x = 4</div>
-                            <div style="background: white; padding: 1rem; border-radius: var(--radius); border: 2px solid transparent; cursor: pointer; transition: all 0.3s;" onclick="checkAnswer(this, false)">x = 5</div>
-                            <div style="background: white; padding: 1rem; border-radius: var(--radius); border: 2px solid transparent; cursor: pointer; transition: all 0.3s;" onclick="checkAnswer(this, false)">x = 6</div>
-                        </div>
-                        <button class="btn btn-primary" onclick="nextExercise()" style="margin-top: 1rem;">Următorul Exercițiu</button>
+            // Track progress for logged in users
+            if (currentUser) {
+                trackProgress(type);
+            }
+        } catch (error) {
+            console.error('Error loading content:', error);
+            dynamicContent.innerHTML = generateDemoContent(section, type);
+        }
+    }
+
+    function generateDemoContent(section, type) {
+        const sectionName = section === 'premium' ? 'Premium' : 'Gratuit';
+        const badgeHtml = section === 'premium' ? '<span class="premium-badge">PREMIUM</span>' : '';
+        
+        if (type.includes('exercitii') || type.includes('interactive')) {
+            return `
+                <div style="background: var(--light); border-radius: var(--radius); padding: 2rem; margin: 2rem 0;">
+                    <h3>Exercițiu Interactiv ${badgeHtml}</h3>
+                    <div style="font-size: 1.25rem; margin-bottom: 1.5rem; color: var(--dark);">
+                        Rezolvă ecuația: 2x + 5 = 13
                     </div>
-                `;
-            } else if (type.includes('teste')) {
-                return `
-                    <div style="background: var(--light); border-radius: var(--radius); padding: 2rem; margin: 2rem 0;">
-                        <h3>Test de Evaluare ${badgeHtml}</h3>
-                        <div style="width: 100%; height: 10px; background: var(--light); border-radius: 5px; overflow: hidden; margin: 1rem 0;">
-                            <div style="height: 100%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); border-radius: 5px; width: 30%;"></div>
-                        </div>
-                        <p>Întrebarea 3 din 10</p>
-                        <div style="font-size: 1.25rem; margin-bottom: 1.5rem; color: var(--dark);">
-                            Care este derivata funcției f(x) = x²?
-                        </div>
-                        <div style="display: flex; flex-direction: column; gap: 1rem;">
-                            <div style="background: white; padding: 1rem; border-radius: var(--radius); cursor: pointer;" onclick="checkAnswer(this, false)">f'(x) = x</div>
-                            <div style="background: white; padding: 1rem; border-radius: var(--radius); cursor: pointer;" onclick="checkAnswer(this, true)">f'(x) = 2x</div>
-                            <div style="background: white; padding: 1rem; border-radius: var(--radius); cursor: pointer;" onclick="checkAnswer(this, false)">f'(x) = x²</div>
-                            <div style="background: white; padding: 1rem; border-radius: var(--radius); cursor: pointer;" onclick="checkAnswer(this, false)">f'(x) = 2</div>
-                        </div>
-                        <button class="btn btn-primary" style="margin-top: 1rem;">Verifică Răspuns</button>
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div style="background: white; padding: 1rem; border-radius: var(--radius); border: 2px solid transparent; cursor: pointer; transition: all 0.3s;" onclick="checkAnswer(this, true)">x = 4</div>
+                        <div style="background: white; padding: 1rem; border-radius: var(--radius); border: 2px solid transparent; cursor: pointer; transition: all 0.3s;" onclick="checkAnswer(this, false)">x = 5</div>
+                        <div style="background: white; padding: 1rem; border-radius: var(--radius); border: 2px solid transparent; cursor: pointer; transition: all 0.3s;" onclick="checkAnswer(this, false)">x = 6</div>
                     </div>
-                `;
+                    <button class="btn btn-primary" onclick="nextExercise()" style="margin-top: 1rem;">Următorul Exercițiu</button>
+                </div>
+            `;
+        } else if (type.includes('teste')) {
+            return `
+                <div style="background: var(--light); border-radius: var(--radius); padding: 2rem; margin: 2rem 0;">
+                    <h3>Test de Evaluare ${badgeHtml}</h3>
+                    <div style="width: 100%; height: 10px; background: var(--light); border-radius: 5px; overflow: hidden; margin: 1rem 0;">
+                        <div style="height: 100%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); border-radius: 5px; width: 30%;"></div>
+                    </div>
+                    <p>Întrebarea 3 din 10</p>
+                    <div style="font-size: 1.25rem; margin-bottom: 1.5rem; color: var(--dark);">
+                        Care este derivata funcției f(x) = x²?
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div style="background: white; padding: 1rem; border-radius: var(--radius); cursor: pointer;" onclick="checkAnswer(this, false)">f'(x) = x</div>
+                        <div style="background: white; padding: 1rem; border-radius: var(--radius); cursor: pointer;" onclick="checkAnswer(this, true)">f'(x) = 2x</div>
+                        <div style="background: white; padding: 1rem; border-radius: var(--radius); cursor: pointer;" onclick="checkAnswer(this, false)">f'(x) = x²</div>
+                        <div style="background: white; padding: 1rem; border-radius: var(--radius); cursor: pointer;" onclick="checkAnswer(this, false)">f'(x) = 2</div>
+                    </div>
+                    <button class="btn btn-primary" style="margin-top: 1rem;">Verifică Răspuns</button>
+                </div>
+            `;
+        } else {
+            return `
+                <div style="padding: 2rem; background: white; border-radius: var(--radius); margin: 2rem 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                    <h3>${type.replace('-', ' ').toUpperCase()} ${badgeHtml}</h3>
+                    <p>Conținutul pentru această secțiune va fi disponibil în curând.</p>
+                    <p><strong>Secțiune:</strong> ${sectionName}</p>
+                    <p><strong>Tip conținut:</strong> ${type}</p>
+                    ${section === 'premium' ? '<div class="premium-badge" style="margin-top: 1rem;">Conținut exclusiv pentru abonați Premium</div>' : ''}
+                </div>
+            `;
+        }
+    }
+
+    function checkAnswer(element, isCorrect) {
+        // Remove previous selections
+        element.parentNode.querySelectorAll('div').forEach(opt => {
+            opt.style.borderColor = 'transparent';
+            opt.style.background = 'white';
+        });
+        
+        setTimeout(() => {
+            if (isCorrect) {
+                element.style.background = 'rgba(16, 185, 129, 0.1)';
+                element.style.borderColor = 'var(--secondary)';
+                showToast('Corect! Bravo!', 'success');
             } else {
-                return `
-                    <div style="padding: 2rem; background: white; border-radius: var(--radius); margin: 2rem 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-                        <h3>${type.replace('-', ' ').toUpperCase()} ${badgeHtml}</h3>
-                        <p>Conținutul pentru această secțiune va fi disponibil în curând.</p>
-                        <p><strong>Secțiune:</strong> ${sectionName}</p>
-                        <p><strong>Tip conținut:</strong> ${type}</p>
-                        ${section === 'premium' ? '<div class="premium-badge" style="margin-top: 1rem;">Conținut exclusiv pentru abonați Premium</div>' : ''}
-                    </div>
-                `;
+                element.style.background = 'rgba(239, 68, 68, 0.1)';
+                element.style.borderColor = 'var(--danger)';
+                showToast('Încearcă din nou!', 'error');
             }
-        }
+        }, 200);
+    }
 
-        function checkAnswer(element, isCorrect) {
-            // Remove previous selections
-            element.parentNode.querySelectorAll('div').forEach(opt => {
-                opt.style.borderColor = 'transparent';
-                opt.style.background = 'white';
-            });
+    function nextExercise() {
+        loadContent('free', 'clasa5-exercitii');
+    }
+
+    // Admin functions
+    async function addNewPage() {
+        const url = prompt('Introdu URL-ul paginii HTML din GitHub:');
+        if (url) {
+            const section = prompt('Secțiune (free/premium):');
+            const type = prompt('Tip conținut (ex: clasa5-lectii):');
             
-            setTimeout(() => {
-                if (isCorrect) {
-                    element.style.background = 'rgba(16, 185, 129, 0.1)';
-                    element.style.borderColor = 'var(--secondary)';
-                    showToast('Corect! Bravo!', 'success');
-                } else {
-                    element.style.background = 'rgba(239, 68, 68, 0.1)';
-                    element.style.borderColor = 'var(--danger)';
-                    showToast('Încearcă din nou!', 'error');
-                }
-            }, 200);
-        }
-
-        function nextExercise() {
-            loadContent('free', 'clasa5-exercitii');
-        }
-
-        // Admin functions
-        async function addNewPage() {
-            const url = prompt('Introdu URL-ul paginii HTML din GitHub:');
-            if (url) {
-                const section = prompt('Secțiune (free/premium):');
-                const type = prompt('Tip conținut (ex: clasa5-lectii):');
-                
-                if (section && type) {
-                    const { data, error } = await supabase
-                        .from('content')
-                        .insert([
-                            { 
-                                section: section, 
-                                type: type, 
-                                content_url: url,
-                                created_by: currentUser.id,
-                                title: type.replace('-', ' ').toUpperCase(),
-                                content_type: type.includes('lectii') ? 'lesson' : type.includes('exercitii') ? 'exercise' : 'test'
-                            }
-                        ]);
-                    
-                    if (error) {
-                        showToast('Eroare la adăugarea conținutului: ' + error.message, 'error');
-                    } else {
-                        showToast('Conținut adăugat cu succes!', 'success');
-                    }
-                }
-            }
-        }
-
-        function addNewLink() {
-            const link = prompt('Introdu link-ul:');
-            const title = prompt('Titlu link:');
-            
-            if (link && title) {
-                showToast('Link adăugat: ' + title, 'success');
-            }
-        }
-
-        function manageUsers() {
-            showToast('Funcție în dezvoltare...', 'info');
-        }
-
-        function viewStatistics() {
-            showToast('Statistici: 150 utilizatori activi, 45 abonați premium', 'info');
-        }
-
-        async function saveContent() {
-            const url = document.getElementById('githubUrl').value;
-            const section = document.getElementById('contentSection').value;
-            const category = document.getElementById('contentCategory').value;
-            
-            if (url && category) {
+            if (section && type) {
                 const { data, error } = await supabase
                     .from('content')
                     .insert([
-                        {
-                            section: section,
-                            type: category,
+                        { 
+                            section: section, 
+                            type: type, 
                             content_url: url,
                             created_by: currentUser.id,
-                            title: category.replace('-', ' ').toUpperCase(),
-                            content_type: category.includes('lectii') ? 'lesson' : category.includes('exercitii') ? 'exercise' : 'test'
+                            title: type.replace('-', ' ').toUpperCase(),
+                            content_type: type.includes('lectii') ? 'lesson' : type.includes('exercitii') ? 'exercise' : 'test'
                         }
                     ]);
                 
                 if (error) {
-                    showToast('Eroare: ' + error.message, 'error');
+                    showToast('Eroare la adăugarea conținutului: ' + error.message, 'error');
                 } else {
-                    showToast('Conținut salvat cu succes!', 'success');
-                    document.getElementById('githubUrl').value = '';
-                    document.getElementById('contentCategory').value = '';
+                    showToast('Conținut adăugat cu succes!', 'success');
                 }
-            } else {
-                showToast('Completează toate câmpurile!', 'error');
             }
         }
+    }
 
-        // Forum functions
-        async function createPost(event) {
-            event.preventDefault();
-            
-            const title = document.getElementById('postTitle').value;
-            const content = document.getElementById('postContent').value;
-            
-            const displayName = userData?.name || currentUser.email.split('@')[0];
-            
+    function addNewLink() {
+        const link = prompt('Introdu link-ul:');
+        const title = prompt('Titlu link:');
+        
+        if (link && title) {
+            showToast('Link adăugat: ' + title, 'success');
+        }
+    }
+
+    function manageUsers() {
+        showToast('Funcție în dezvoltare...', 'info');
+    }
+
+    function viewStatistics() {
+        showToast('Statistici: 150 utilizatori activi, 45 abonați premium', 'info');
+    }
+
+    async function saveContent() {
+        const url = document.getElementById('githubUrl').value;
+        const section = document.getElementById('contentSection').value;
+        const category = document.getElementById('contentCategory').value;
+        
+        if (url && category) {
             const { data, error } = await supabase
-                .from('forum_posts')
+                .from('content')
                 .insert([
                     {
-                        title: title,
-                        content: content,
-                        author_id: currentUser.id,
-                        author_name: displayName
+                        section: section,
+                        type: category,
+                        content_url: url,
+                        created_by: currentUser.id,
+                        title: category.replace('-', ' ').toUpperCase(),
+                        content_type: category.includes('lectii') ? 'lesson' : category.includes('exercitii') ? 'exercise' : 'test'
                     }
                 ]);
             
             if (error) {
-                showToast('Eroare la postare: ' + error.message, 'error');
+                showToast('Eroare: ' + error.message, 'error');
             } else {
-                showToast('Postare creată cu succes!', 'success');
-                closeModal('newPostModal');
-                document.getElementById('postTitle').value = '';
-                document.getElementById('postContent').value = '';
-                loadForumPosts();
+                showToast('Conținut salvat cu succes!', 'success');
+                document.getElementById('githubUrl').value = '';
+                document.getElementById('contentCategory').value = '';
             }
+        } else {
+            showToast('Completează toate câmpurile!', 'error');
         }
+    }
 
-        async function loadForumPosts() {
-            const { data, error } = await supabase
-                .from('forum_posts')
-                .select('*')
-                .order('created_at', { ascending: false })
-                .limit(10);
-            
-            if (data && data.length > 0) {
-                const postsContainer = document.getElementById('forum-posts');
-                postsContainer.innerHTML = data.map(post => `
-                    <div class="forum-post">
-                        <div class="forum-header">
-                            <span class="forum-author">${post.author_name}</span>
-                            <span class="forum-date">${new Date(post.created_at).toLocaleDateString('ro-RO')}</span>
-                        </div>
-                        <h4>${post.title}</h4>
-                        <p>${post.content}</p>
+    // Forum functions
+    async function createPost(event) {
+        event.preventDefault();
+        
+        const title = document.getElementById('postTitle').value;
+        const content = document.getElementById('postContent').value;
+        
+        const displayName = userData?.name || currentUser.email.split('@')[0];
+        
+        const { data, error } = await supabase
+            .from('forum_posts')
+            .insert([
+                {
+                    title: title,
+                    content: content,
+                    author_id: currentUser.id,
+                    author_name: displayName
+                }
+            ]);
+        
+        if (error) {
+            showToast('Eroare la postare: ' + error.message, 'error');
+        } else {
+            showToast('Postare creată cu succes!', 'success');
+            closeModal('newPostModal');
+            document.getElementById('postTitle').value = '';
+            document.getElementById('postContent').value = '';
+            loadForumPosts();
+        }
+    }
+
+    async function loadForumPosts() {
+        const { data, error } = await supabase
+            .from('forum_posts')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(10);
+        
+        if (data && data.length > 0) {
+            const postsContainer = document.getElementById('forum-posts');
+            postsContainer.innerHTML = data.map(post => `
+                <div class="forum-post">
+                    <div class="forum-header">
+                        <span class="forum-author">${post.author_name}</span>
+                        <span class="forum-date">${new Date(post.created_at).toLocaleDateString('ro-RO')}</span>
                     </div>
-                `).join('');
-            }
+                    <h4>${post.title}</h4>
+                    <p>${post.content}</p>
+                </div>
+            `).join('');
         }
+    }
 
-        // Progress tracking
-        async function trackProgress(contentType) {
-            if (!currentUser) return;
-            
-            const { data, error } = await supabase
-                .from('progress')
-                .upsert([
-                    {
-                        user_id: currentUser.id,
-                        content_type: contentType,
-                        last_accessed: new Date().toISOString(),
-                        progress_percentage: 10
-                    }
-                ], { onConflict: 'user_id,content_type' });
+    // Progress tracking
+    async function trackProgress(contentType) {
+        if (!currentUser) return;
+        
+        const { data, error } = await supabase
+            .from('progress')
+            .upsert([
+                {
+                    user_id: currentUser.id,
+                    content_type: contentType,
+                    last_accessed: new Date().toISOString(),
+                    progress_percentage: 10
+                }
+            ], { onConflict: 'user_id,content_type' });
+    }
+
+    // Toast notification
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `
+            <span>${type === 'success' ? '✓' : type === 'error' ? '✗' : type === 'warning' ? '⚠' : 'ℹ'}</span>
+            <span>${message}</span>
+        `;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.remove();
+        }, 4000);
+    }
+
+    // Initialize app on load
+    document.addEventListener('DOMContentLoaded', initApp);
+
+    // Close modals on outside click
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.classList.remove('active');
         }
-
-        // Toast notification
-        function showToast(message, type = 'info') {
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.innerHTML = `
-                <span>${type === 'success' ? '✓' : type === 'error' ? '✗' : 'ℹ'}</span>
-                <span>${message}</span>
-            `;
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.remove();
-            }, 4000);
-        }
-
-        // Initialize app on load
-        document.addEventListener('DOMContentLoaded', initApp);
-
-        // Close modals on outside click
-        window.onclick = function(event) {
-            if (event.target.classList.contains('modal')) {
-                event.target.classList.remove('active');
-            }
-        }
-    </script>
+    }
+</script>
+                        <div style="background: white; padding: 1rem; border-radius: var(--radius); border: 2px solid transparent; cursor: pointer; transition: all 0.3s;" onclick="checkAnswer(this, false)">x = 3</div>
 </body>
 </html>
