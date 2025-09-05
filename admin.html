@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Platformă Educațională Mate</title>
+    <title>Admin Dashboard - Mate</title>
     
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -24,25 +24,23 @@
             --dark: #1f2937;
             --light: #f3f4f6;
             --white: #ffffff;
+            --gold: #fbbf24;
             --shadow: 0 10px 30px rgba(0,0,0,0.1);
             --radius: 12px;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            line-height: 1.6;
-            color: var(--dark);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
             padding: 0 20px;
         }
 
-        /* Header */
         header {
             background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(10px);
@@ -60,7 +58,7 @@
         }
 
         .logo {
-            font-size: 2.5rem;
+            font-size: 2rem;
             font-weight: 900;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             -webkit-background-clip: text;
@@ -68,19 +66,10 @@
             background-clip: text;
         }
 
-        .admin-badge {
-            background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 25px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+        .nav-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
         }
 
         .btn {
@@ -100,13 +89,13 @@
             color: white;
         }
 
-        .btn-danger {
-            background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--secondary) 0%, #059669 100%);
             color: white;
         }
 
-        .btn-secondary {
-            background: linear-gradient(135deg, var(--secondary) 0%, #059669 100%);
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
             color: white;
         }
 
@@ -120,84 +109,164 @@
             box-shadow: 0 6px 20px rgba(0,0,0,0.2);
         }
 
-        /* Main Content */
         main {
             padding: 2rem 0;
-            min-height: calc(100vh - 100px);
         }
 
-        .admin-container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: var(--radius);
-            padding: 2rem;
-            box-shadow: var(--shadow);
-        }
-
-        .admin-header {
-            text-align: center;
-            margin-bottom: 3rem;
-            padding-bottom: 2rem;
-            border-bottom: 3px solid var(--danger);
-        }
-
-        .admin-grid {
+        .dashboard {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: 250px 1fr;
             gap: 2rem;
-            margin: 2rem 0;
+            margin-top: 2rem;
         }
 
-        .admin-card {
-            background: white;
+        .sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-menu a {
+            display: block;
+            padding: 0.75rem 1rem;
+            color: var(--dark);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .sidebar-menu a:hover,
+        .sidebar-menu a.active {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            color: var(--primary);
+        }
+
+        .content-area {
+            background: rgba(255, 255, 255, 0.95);
             border-radius: var(--radius);
             padding: 2rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            transition: all 0.3s;
-            border-left: 4px solid var(--primary);
-        }
-
-        .admin-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow);
-        }
-
-        .admin-card.danger {
-            border-left-color: var(--danger);
-        }
-
-        .admin-card.warning {
-            border-left-color: var(--warning);
-        }
-
-        .admin-card.success {
-            border-left-color: var(--secondary);
+            min-height: 500px;
         }
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin: 2rem 0;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
         }
 
         .stat-card {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-            padding: 1.5rem;
+            background: white;
             border-radius: var(--radius);
-            text-align: center;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
         }
 
-        .stat-number {
-            font-size: 2.5rem;
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .stat-card.primary::before {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        }
+
+        .stat-card.success::before {
+            background: linear-gradient(135deg, var(--secondary) 0%, #059669 100%);
+        }
+
+        .stat-card.warning::before {
+            background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%);
+        }
+
+        .stat-card.danger::before {
+            background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
+        }
+
+        .stat-value {
+            font-size: 2rem;
             font-weight: bold;
-            display: block;
+            margin: 0.5rem 0;
         }
 
         .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.9;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--light);
+        }
+
+        tr:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--secondary);
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .badge-primary {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary);
         }
 
         .form-group {
@@ -211,7 +280,9 @@
             color: var(--dark);
         }
 
-        .form-input, .form-select, .form-textarea {
+        .form-input,
+        .form-select,
+        .form-textarea {
             width: 100%;
             padding: 0.75rem;
             border: 2px solid var(--light);
@@ -220,59 +291,78 @@
             transition: all 0.3s;
         }
 
-        .form-input:focus, .form-select:focus, .form-textarea:focus {
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
-        .data-table {
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            border-collapse: collapse;
-            margin: 1rem 0;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
             background: white;
             border-radius: var(--radius);
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
-        .data-table th,
-        .data-table td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid var(--light);
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
         }
 
-        .data-table th {
-            background: var(--dark);
-            color: white;
-            font-weight: 600;
-        }
-
-        .data-table tr:hover {
-            background: rgba(37, 99, 235, 0.05);
-        }
-
-        .status-badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .status-active {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--secondary);
-        }
-
-        .status-inactive {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--danger);
-        }
-
-        .status-pending {
-            background: rgba(245, 158, 11, 0.1);
-            color: var(--warning);
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--dark);
         }
 
         .toast {
@@ -286,140 +376,420 @@
             display: flex;
             align-items: center;
             gap: 1rem;
+            animation: slideInRight 0.3s ease;
             z-index: 3000;
         }
 
-        .toast.success { border-left: 4px solid var(--secondary); }
-        .toast.error { border-left: 4px solid var(--danger); }
-        .toast.info { border-left: 4px solid var(--primary); }
-        .toast.warning { border-left: 4px solid var(--warning); }
+        @keyframes slideInRight {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
 
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
+        .toast.success {
+            border-left: 4px solid var(--secondary);
+        }
+
+        .toast.error {
+            border-left: 4px solid var(--danger);
+        }
+
+        .spinner {
             border: 3px solid var(--light);
+            border-top: 3px solid var(--primary);
             border-radius: 50%;
-            border-top-color: var(--primary);
-            animation: spin 1s ease-in-out infinite;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
-            .admin-grid {
+            .dashboard {
                 grid-template-columns: 1fr;
             }
             
+            .sidebar {
+                position: static;
+            }
+            
             .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
     <header>
         <nav class="container">
             <div class="logo">Mate Admin</div>
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                <div class="admin-badge">Administrator</div>
-                <div id="adminUser" style="display: none; margin-right: 1rem;">
-                    <span id="adminName"></span>
-                </div>
-                <a href="index.html" class="btn btn-secondary">Înapoi la Site</a>
-                <button id="logoutBtn" class="btn btn-danger" onclick="logout()">Deconectare</button>
+            <div class="nav-actions">
+                <span id="adminName" style="margin-right: 1rem; color: var(--dark); font-weight: 600;">Admin</span>
+                <button class="btn btn-secondary" onclick="window.location.href='index.html'">Înapoi la Site</button>
+                <button class="btn btn-danger" onclick="logout()">Deconectare</button>
             </div>
         </nav>
     </header>
 
-    <!-- Main Content -->
     <main class="container">
-        <div class="admin-container">
-            <!-- Loading State -->
-            <div id="loadingState" style="text-align: center; padding: 4rem;">
-                <div class="loading" style="margin: 0 auto 1rem;"></div>
-                <p>Se verifică permisiunile de administrator...</p>
-            </div>
+        <div class="dashboard">
+            <aside class="sidebar">
+                <ul class="sidebar-menu">
+                    <li><a href="#" class="active" onclick="showSection('overview')">📊 Prezentare Generală</a></li>
+                    <li><a href="#" onclick="showSection('users')">👥 Utilizatori</a></li>
+                    <li><a href="#" onclick="showSection('content')">📚 Conținut</a></li>
+                    <li><a href="#" onclick="showSection('subscriptions')">💳 Abonamente</a></li>
+                    <li><a href="#" onclick="showSection('forum')">💬 Forum</a></li>
+                    <li><a href="#" onclick="showSection('sessions')">🎥 Sesiuni Live</a></li>
+                    <li><a href="#" onclick="showSection('payments')">💰 Plăți</a></li>
+                    <li><a href="#" onclick="showSection('analytics')">📈 Statistici</a></li>
+                </ul>
+            </aside>
 
-            <!-- Access Denied -->
-            <div id="accessDenied" style="display: none; text-align: center; padding: 4rem;">
-                <h2 style="color: var(--danger); margin-bottom: 1rem;">Acces Interzis</h2>
-                <p>Nu ai permisiuni de administrator pentru a accesa această pagină.</p>
-                <a href="index.html" class="btn btn-primary" style="margin-top: 1rem;">Înapoi la Site</a>
-            </div>
+            <div class="content-area">
+                <!-- Overview Section -->
+                <div id="overview" class="tab-content active">
+                    <h2 style="margin-bottom: 2rem;">Prezentare Generală Dashboard</h2>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card primary">
+                            <div class="stat-label">Total Utilizatori</div>
+                            <div class="stat-value" id="totalUsers">0</div>
+                        </div>
+                        
+                        <div class="stat-card success">
+                            <div class="stat-label">Abonați Premium</div>
+                            <div class="stat-value" id="premiumUsers">0</div>
+                        </div>
+                        
+                        <div class="stat-card warning">
+                            <div class="stat-label">Venituri Lunare</div>
+                            <div class="stat-value" id="monthlyRevenue">0 RON</div>
+                        </div>
+                        
+                        <div class="stat-card danger">
+                            <div class="stat-label">Sesiuni Live Azi</div>
+                            <div class="stat-value" id="todaySessions">0</div>
+                        </div>
+                    </div>
 
-            <!-- Admin Content -->
-            <div id="adminContent" style="display: none;">
-                <!-- Header -->
-                <div class="admin-header">
-                    <h1>Panou de Administrare</h1>
-                    <p>Gestionează platforma educațională de matematică</p>
+                    <h3 style="margin: 2rem 0 1rem;">Activitate Recentă</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Utilizator</th>
+                                    <th>Acțiune</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentActivity">
+                                <tr>
+                                    <td colspan="4" style="text-align: center;">Se încarcă...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
-                <!-- Statistics -->
-                <section>
-                    <h2>Statistici Platformă</h2>
+                <!-- Users Section -->
+                <div id="users" class="tab-content">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                        <h2>Gestionare Utilizatori</h2>
+                        <button class="btn btn-primary" onclick="showAddUserModal()">+ Adaugă Utilizator</button>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nume</th>
+                                    <th>Email</th>
+                                    <th>Rol</th>
+                                    <th>Tip Cont</th>
+                                    <th>Data Înregistrării</th>
+                                    <th>Acțiuni</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTable">
+                                <tr>
+                                    <td colspan="6" style="text-align: center;">Se încarcă...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Content Section -->
+                <div id="content" class="tab-content">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                        <h2>Gestionare Conținut</h2>
+                        <button class="btn btn-primary" onclick="showAddContentModal()">+ Adaugă Conținut</button>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Titlu</th>
+                                    <th>Secțiune</th>
+                                    <th>Tip</th>
+                                    <th>Clasă</th>
+                                    <th>Data Adăugării</th>
+                                    <th>Acțiuni</th>
+                                </tr>
+                            </thead>
+                            <tbody id="contentTable">
+                                <tr>
+                                    <td colspan="6" style="text-align: center;">Se încarcă...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Subscriptions Section -->
+                <div id="subscriptions" class="tab-content">
+                    <h2 style="margin-bottom: 2rem;">Gestionare Abonamente</h2>
+                    
+                    <div class="stats-grid" style="margin-bottom: 2rem;">
+                        <div class="stat-card success">
+                            <div class="stat-label">Abonamente Active</div>
+                            <div class="stat-value" id="activeSubscriptions">0</div>
+                        </div>
+                        
+                        <div class="stat-card warning">
+                            <div class="stat-label">Anulări Luna Aceasta</div>
+                            <div class="stat-value" id="canceledSubscriptions">0</div>
+                        </div>
+                        
+                        <div class="stat-card primary">
+                            <div class="stat-label">Venituri Recurente Lunare</div>
+                            <div class="stat-value" id="mrr">0 RON</div>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Utilizator</th>
+                                    <th>Plan</th>
+                                    <th>Status</th>
+                                    <th>Început Perioadă</th>
+                                    <th>Sfârșit Perioadă</th>
+                                    <th>Acțiuni</th>
+                                </tr>
+                            </thead>
+                            <tbody id="subscriptionsTable">
+                                <tr>
+                                    <td colspan="6" style="text-align: center;">Se încarcă...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Forum Section -->
+                <div id="forum" class="tab-content">
+                    <h2 style="margin-bottom: 2rem;">Moderare Forum</h2>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Titlu</th>
+                                    <th>Autor</th>
+                                    <th>Vizualizări</th>
+                                    <th>Răspunsuri</th>
+                                    <th>Data</th>
+                                    <th>Acțiuni</th>
+                                </tr>
+                            </thead>
+                            <tbody id="forumTable">
+                                <tr>
+                                    <td colspan="6" style="text-align: center;">Se încarcă...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Sessions Section -->
+                <div id="sessions" class="tab-content">
+                    <h2 style="margin-bottom: 2rem;">Sesiuni Live</h2>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Profesor</th>
+                                    <th>Data Programată</th>
+                                    <th>Durată</th>
+                                    <th>Status</th>
+                                    <th>Acțiuni</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sessionsTable">
+                                <tr>
+                                    <td colspan="6" style="text-align: center;">Se încarcă...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Payments Section -->
+                <div id="payments" class="tab-content">
+                    <h2 style="margin-bottom: 2rem;">Istoric Plăți</h2>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Utilizator</th>
+                                    <th>Suma</th>
+                                    <th>Descriere</th>
+                                    <th>Status</th>
+                                    <th>Acțiuni</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paymentsTable">
+                                <tr>
+                                    <td colspan="6" style="text-align: center;">Se încarcă...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Analytics Section -->
+                <div id="analytics" class="tab-content">
+                    <h2 style="margin-bottom: 2rem;">Statistici Detaliate</h2>
+                    
                     <div class="stats-grid">
-                        <div class="stat-card">
-                            <span class="stat-number" id="totalUsers">-</span>
-                            <span class="stat-label">Utilizatori Totali</span>
+                        <div class="stat-card primary">
+                            <div class="stat-label">Rata de Conversie</div>
+                            <div class="stat-value" id="conversionRate">0%</div>
                         </div>
-                        <div class="stat-card" style="background: linear-gradient(135deg, var(--secondary) 0%, #059669 100%);">
-                            <span class="stat-number" id="premiumUsers">-</span>
-                            <span class="stat-label">Utilizatori Premium</span>
+                        
+                        <div class="stat-card success">
+                            <div class="stat-label">Retenție Lunară</div>
+                            <div class="stat-value" id="retentionRate">0%</div>
                         </div>
-                        <div class="stat-card" style="background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%);">
-                            <span class="stat-number" id="activeSubscriptions">-</span>
-                            <span class="stat-label">Abonamente Active</span>
+                        
+                        <div class="stat-card warning">
+                            <div class="stat-label">Lecții Completate</div>
+                            <div class="stat-value" id="completedLessons">0</div>
                         </div>
-                        <div class="stat-card" style="background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);">
-                            <span class="stat-number" id="totalRevenue">-</span>
-                            <span class="stat-label">Venituri (RON)</span>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Admin Actions -->
-                <section>
-                    <h2>Acțiuni Administrative</h2>
-                    <div class="admin-grid">
-                        <div class="admin-card">
-                            <h3>Gestionare Conținut</h3>
-                            <p>Adaugă, editează sau șterge conținut educațional</p>
-                            <button class="btn btn-primary" onclick="showContentManager()">Gestionează Conținut</button>
-                        </div>
-
-                        <div class="admin-card warning">
-                            <h3>Gestionare Utilizatori</h3>
-                            <p>Vezi și modifică conturile utilizatorilor</p>
-                            <button class="btn btn-warning" onclick="showUserManager()">Gestionează Utilizatori</button>
-                        </div>
-
-                        <div class="admin-card success">
-                            <h3>Rapoarte Plăți</h3>
-                            <p>Vezi tranzacțiile și abonamentele</p>
-                            <button class="btn btn-secondary" onclick="showPaymentReports()">Vezi Rapoarte</button>
-                        </div>
-
-                        <div class="admin-card danger">
-                            <h3>Setări Sistem</h3>
-                            <p>Configurări avansate ale platformei</p>
-                            <button class="btn btn-danger" onclick="showSystemSettings()">Setări Sistem</button>
+                        
+                        <div class="stat-card danger">
+                            <div class="stat-label">Teste Date</div>
+                            <div class="stat-value" id="completedTests">0</div>
                         </div>
                     </div>
-                </section>
 
-                <!-- Dynamic Content Area -->
-                <section id="dynamicSection" style="margin-top: 3rem;">
-                    <!-- Content will be loaded here -->
-                </section>
+                    <h3 style="margin: 2rem 0 1rem;">Grafice</h3>
+                    <div style="background: white; padding: 2rem; border-radius: var(--radius); text-align: center;">
+                        <p>Graficele vor fi disponibile în curând...</p>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
+
+    <!-- Add User Modal -->
+    <div id="addUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Adaugă Utilizator Nou</h2>
+                <button class="modal-close" onclick="closeModal('addUserModal')">✕</button>
+            </div>
+            <form onsubmit="addUser(event)">
+                <div class="form-group">
+                    <label class="form-label">Nume:</label>
+                    <input type="text" class="form-input" id="newUserName" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email:</label>
+                    <input type="email" class="form-input" id="newUserEmail" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Rol:</label>
+                    <select class="form-select" id="newUserRole">
+                        <option value="student">Student</option>
+                        <option value="teacher">Profesor</option>
+                        <option value="admin">Administrator</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tip Cont:</label>
+                    <select class="form-select" id="newUserAccountType">
+                        <option value="free">Gratuit</option>
+                        <option value="premium">Premium</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Adaugă Utilizator</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Content Modal -->
+    <div id="addContentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Adaugă Conținut Nou</h2>
+                <button class="modal-close" onclick="closeModal('addContentModal')">✕</button>
+            </div>
+            <form onsubmit="addContent(event)">
+                <div class="form-group">
+                    <label class="form-label">Titlu:</label>
+                    <input type="text" class="form-input" id="contentTitle" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Secțiune:</label>
+                    <select class="form-select" id="contentSection">
+                        <option value="free">Gratuit</option>
+                        <option value="premium">Premium</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tip:</label>
+                    <input type="text" class="form-input" id="contentType" placeholder="ex: clasa5-lectii" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">URL Conținut (GitHub):</label>
+                    <input type="url" class="form-input" id="contentUrl" placeholder="https://raw.githubusercontent.com/..." required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Clasă (opțional):</label>
+                    <select class="form-select" id="contentClass">
+                        <option value="">Selectează...</option>
+                        <option value="5">Clasa a V-a</option>
+                        <option value="6">Clasa a VI-a</option>
+                        <option value="7">Clasa a VII-a</option>
+                        <option value="8">Clasa a VIII-a</option>
+                        <option value="9">Clasa a IX-a</option>
+                        <option value="10">Clasa a X-a</option>
+                        <option value="11">Clasa a XI-a</option>
+                        <option value="12">Clasa a XII-a</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Descriere:</label>
+                    <textarea class="form-textarea" id="contentDescription"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Adaugă Conținut</button>
+            </form>
+        </div>
+    </div>
 
     <script>
         // Supabase Configuration
@@ -430,620 +800,526 @@
         let currentUser = null;
         let isAdmin = false;
 
-        // Initialize admin panel
-        async function initAdmin() {
-            try {
-                // Check if user is logged in
-                const { data: { user } } = await supabase.auth.getUser();
-                
-                if (!user) {
-                    showAccessDenied();
-                    return;
-                }
-
-                currentUser = user;
-
-                // Check if user is admin
-                const { data: userData, error } = await supabase
-                    .from('users')
-                    .select('role, name')
-                    .eq('id', user.id)
-                    .single();
-
-                if (error || !userData || userData.role !== 'admin') {
-                    showAccessDenied();
-                    return;
-                }
-
-                isAdmin = true;
-                document.getElementById('adminName').textContent = userData.name || user.email;
-                document.getElementById('adminUser').style.display = 'block';
-
-                // Show admin content
-                document.getElementById('loadingState').style.display = 'none';
-                document.getElementById('adminContent').style.display = 'block';
-
-                // Load statistics
-                await loadStatistics();
-
-            } catch (error) {
-                console.error('Error initializing admin:', error);
-                showAccessDenied();
+        // Initialize
+        async function init() {
+            // Check if user is logged in and is admin
+            const { data: { user } } = await supabase.auth.getUser();
+            
+            if (!user) {
+                window.location.href = 'index.html';
+                return;
             }
+            
+            currentUser = user;
+            
+            // Check if user is admin
+            const { data: userData } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', user.id)
+                .single();
+            
+            if (!userData || userData.role !== 'admin') {
+                showToast('Nu ai permisiuni de administrator!', 'error');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
+                return;
+            }
+            
+            isAdmin = true;
+            document.getElementById('adminName').textContent = userData.name || user.email.split('@')[0];
+            
+            // Load dashboard data
+            loadDashboard();
         }
 
-        function showAccessDenied() {
-            document.getElementById('loadingState').style.display = 'none';
-            document.getElementById('accessDenied').style.display = 'block';
+        // Load dashboard data
+        async function loadDashboard() {
+            await loadOverviewStats();
+            await loadRecentActivity();
         }
 
-        // Load platform statistics
-        async function loadStatistics() {
+        // Load overview statistics
+        async function loadOverviewStats() {
             try {
                 // Total users
                 const { count: totalUsers } = await supabase
                     .from('users')
                     .select('*', { count: 'exact', head: true });
-
+                document.getElementById('totalUsers').textContent = totalUsers || 0;
+                
                 // Premium users
                 const { count: premiumUsers } = await supabase
-                    .from('users')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('account_type', 'premium');
-
-                // Active subscriptions
-                const { count: activeSubscriptions } = await supabase
                     .from('subscriptions')
                     .select('*', { count: 'exact', head: true })
                     .eq('status', 'active');
-
-                // Total revenue
+                document.getElementById('premiumUsers').textContent = premiumUsers || 0;
+                
+                // Monthly revenue
                 const { data: payments } = await supabase
                     .from('payments')
                     .select('amount')
-                    .eq('status', 'succeeded');
-
-                const totalRevenue = payments?.reduce((sum, payment) => sum + (payment.amount || 0), 0) || 0;
-
-                // Update UI
-                document.getElementById('totalUsers').textContent = totalUsers || 0;
-                document.getElementById('premiumUsers').textContent = premiumUsers || 0;
-                document.getElementById('activeSubscriptions').textContent = activeSubscriptions || 0;
-                document.getElementById('totalRevenue').textContent = totalRevenue.toFixed(2);
-
+                    .eq('status', 'succeeded')
+                    .gte('created_at', new Date(new Date().setDate(1)).toISOString());
+                
+                const monthlyRevenue = payments ? payments.reduce((sum, p) => sum + (p.amount || 0), 0) : 0;
+                document.getElementById('monthlyRevenue').textContent = `${monthlyRevenue} RON`;
+                
+                // Today's sessions
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const { count: todaySessions } = await supabase
+                    .from('live_sessions')
+                    .select('*', { count: 'exact', head: true })
+                    .gte('scheduled_at', today.toISOString());
+                document.getElementById('todaySessions').textContent = todaySessions || 0;
             } catch (error) {
-                console.error('Error loading statistics:', error);
-                showToast('Eroare la încărcarea statisticilor', 'error');
+                console.error('Error loading stats:', error);
             }
         }
 
-        // Content Manager
-        async function showContentManager() {
-            const dynamicSection = document.getElementById('dynamicSection');
-            dynamicSection.innerHTML = `
-                <div class="admin-card">
-                    <h3>Gestionare Conținut</h3>
-                    
-                    <!-- Add New Content Form -->
-                    <div style="background: var(--light); padding: 2rem; border-radius: var(--radius); margin-bottom: 2rem;">
-                        <h4>Adaugă Conținut Nou</h4>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-top: 1rem;">
-                            <div class="form-group">
-                                <label class="form-label">Secțiune:</label>
-                                <select class="form-select" id="contentSection">
-                                    <option value="free">Gratuit</option>
-                                    <option value="premium">Premium</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Tip:</label>
-                                <input type="text" class="form-input" id="contentType" placeholder="ex: clasa5-lectii">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Titlu:</label>
-                                <input type="text" class="form-input" id="contentTitle" placeholder="Titlul lecției">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">URL GitHub:</label>
-                            <input type="url" class="form-input" id="contentUrl" placeholder="https://raw.githubusercontent.com/...">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Descriere:</label>
-                            <textarea class="form-textarea" id="contentDescription" rows="3" placeholder="Descrierea conținutului"></textarea>
-                        </div>
-                        <button class="btn btn-primary" onclick="addContent()">Adaugă Conținut</button>
-                    </div>
-                    
-                    <!-- Existing Content Table -->
-                    <div>
-                        <h4>Conținut Existent</h4>
-                        <div id="contentTableContainer">
-                            <div class="loading" style="margin: 2rem auto;"></div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            loadContentTable();
-        }
-
-        // User Manager
-        async function showUserManager() {
-            const dynamicSection = document.getElementById('dynamicSection');
-            dynamicSection.innerHTML = `
-                <div class="admin-card">
-                    <h3>Gestionare Utilizatori</h3>
-                    
-                    <!-- User Search -->
-                    <div style="margin-bottom: 2rem;">
-                        <input type="text" class="form-input" id="userSearch" placeholder="Caută utilizatori după email sau nume..." onkeyup="searchUsers()">
-                    </div>
-                    
-                    <!-- Users Table -->
-                    <div id="usersTableContainer">
-                        <div class="loading" style="margin: 2rem auto;"></div>
-                    </div>
-                </div>
-            `;
-            
-            loadUsersTable();
-        }
-
-        // Payment Reports
-        async function showPaymentReports() {
-            const dynamicSection = document.getElementById('dynamicSection');
-            dynamicSection.innerHTML = `
-                <div class="admin-card">
-                    <h3>Rapoarte Plăți</h3>
-                    
-                    <!-- Filter Options -->
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-                        <div class="form-group">
-                            <label class="form-label">Status:</label>
-                            <select class="form-select" id="paymentStatus" onchange="loadPaymentsTable()">
-                                <option value="">Toate</option>
-                                <option value="succeeded">Reușite</option>
-                                <option value="pending">În așteptare</option>
-                                <option value="failed">Eșuate</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Data de la:</label>
-                            <input type="date" class="form-input" id="dateFrom" onchange="loadPaymentsTable()">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Data până la:</label>
-                            <input type="date" class="form-input" id="dateTo" onchange="loadPaymentsTable()">
-                        </div>
-                    </div>
-                    
-                    <!-- Payments Table -->
-                    <div id="paymentsTableContainer">
-                        <div class="loading" style="margin: 2rem auto;"></div>
-                    </div>
-                </div>
-            `;
-            
-            loadPaymentsTable();
-        }
-
-        // System Settings
-        async function showSystemSettings() {
-            const dynamicSection = document.getElementById('dynamicSection');
-            dynamicSection.innerHTML = `
-                <div class="admin-card danger">
-                    <h3>Setări Sistem</h3>
-                    <p style="color: var(--danger); margin-bottom: 2rem;">Atenție: Aceste setări pot afecta funcționarea platformei!</p>
-                    
-                    <div style="display: grid; gap: 2rem;">
-                        <!-- Database Operations -->
-                        <div style="background: rgba(239, 68, 68, 0.1); padding: 1.5rem; border-radius: var(--radius);">
-                            <h4>Operații Bază de Date</h4>
-                            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
-                                <button class="btn btn-warning" onclick="cleanupSubscriptions()">Curățare Abonamente</button>
-                                <button class="btn btn-warning" onclick="syncUserData()">Sincronizare Date Utilizatori</button>
-                                <button class="btn btn-danger" onclick="resetTestData()">Reset Date Test</button>
-                            </div>
-                        </div>
-                        
-                        <!-- User Management -->
-                        <div style="background: rgba(245, 158, 11, 0.1); padding: 1.5rem; border-radius: var(--radius);">
-                            <h4>Gestionare Utilizatori Avansată</h4>
-                            <div class="form-group">
-                                <label class="form-label">Email utilizator pentru upgrade la Premium:</label>
-                                <div style="display: flex; gap: 1rem;">
-                                    <input type="email" class="form-input" id="upgradeUserEmail" placeholder="email@example.com">
-                                    <button class="btn btn-secondary" onclick="upgradeUserToPremium()">Upgrade la Premium</button>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Email utilizator pentru promovare la Admin:</label>
-                                <div style="display: flex; gap: 1rem;">
-                                    <input type="email" class="form-input" id="promoteUserEmail" placeholder="email@example.com">
-                                    <button class="btn btn-danger" onclick="promoteUserToAdmin()">Promovează la Admin</button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- System Info -->
-                        <div style="background: rgba(16, 185, 129, 0.1); padding: 1.5rem; border-radius: var(--radius);">
-                            <h4>Informații Sistem</h4>
-                            <div id="systemInfo">
-                                <div class="loading" style="margin: 1rem 0;"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            loadSystemInfo();
-        }
-
-        // Load content table
-        async function loadContentTable() {
+        // Load recent activity
+        async function loadRecentActivity() {
             try {
-                const { data: content, error } = await supabase
-                    .from('content')
+                const { data: activities } = await supabase
+                    .from('analytics')
                     .select('*')
-                    .order('created_at', { ascending: false });
-
-                if (error) throw error;
-
-                const tableHtml = `
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Titlu</th>
-                                <th>Secțiune</th>
-                                <th>Tip</th>
-                                <th>Status</th>
-                                <th>Data Creării</th>
-                                <th>Acțiuni</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${content.map(item => `
-                                <tr>
-                                    <td>${item.title || 'Fără titlu'}</td>
-                                    <td>
-                                        <span class="status-badge ${item.section === 'premium' ? 'status-pending' : 'status-active'}">
-                                            ${item.section === 'premium' ? 'PREMIUM' : 'GRATUIT'}
-                                        </span>
-                                    </td>
-                                    <td>${item.type}</td>
-                                    <td>
-                                        <span class="status-badge ${item.content_url ? 'status-active' : 'status-inactive'}">
-                                            ${item.content_url ? 'ACTIV' : 'FĂRĂ URL'}
-                                        </span>
-                                    </td>
-                                    <td>${new Date(item.created_at).toLocaleDateString('ro-RO')}</td>
-                                    <td>
-                                        <button class="btn btn-warning" style="padding: 0.5rem;" onclick="editContent('${item.id}')">Editează</button>
-                                        <button class="btn btn-danger" style="padding: 0.5rem;" onclick="deleteContent('${item.id}')">Șterge</button>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                `;
-
-                document.getElementById('contentTableContainer').innerHTML = tableHtml;
-
-            } catch (error) {
-                console.error('Error loading content:', error);
-                document.getElementById('contentTableContainer').innerHTML = '<p style="text-align: center; color: var(--danger);">Eroare la încărcarea conținutului</p>';
-            }
-        }
-
-        // Load users table
-        async function loadUsersTable(searchTerm = '') {
-            try {
-                let query = supabase
-                    .from('users')
-                    .select(`
-                        *,
-                        subscriptions!inner(status, current_period_end)
-                    `)
-                    .order('created_at', { ascending: false });
-
-                if (searchTerm) {
-                    query = query.or(`email.ilike.%${searchTerm}%,name.ilike.%${searchTerm}%`);
-                }
-
-                const { data: users, error } = await query;
-
-                if (error) throw error;
-
-                const tableHtml = `
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Nume</th>
-                                <th>Email</th>
-                                <th>Rol</th>
-                                <th>Tip Cont</th>
-                                <th>Status Abonament</th>
-                                <th>Data Înregistrării</th>
-                                <th>Acțiuni</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${users.map(user => `
-                                <tr>
-                                    <td>${user.name || 'Fără nume'}</td>
-                                    <td>${user.email}</td>
-                                    <td>
-                                        <span class="status-badge ${user.role === 'admin' ? 'status-pending' : 'status-active'}">
-                                            ${user.role.toUpperCase()}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge ${user.account_type === 'premium' ? 'status-pending' : 'status-active'}">
-                                            ${user.account_type.toUpperCase()}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        ${user.subscriptions && user.subscriptions.length > 0 ? 
-                                            `<span class="status-badge ${user.subscriptions[0].status === 'active' ? 'status-active' : 'status-inactive'}">
-                                                ${user.subscriptions[0].status.toUpperCase()}
-                                            </span>` : 
-                                            '<span class="status-badge status-inactive">FĂRĂ ABONAMENT</span>'
-                                        }
-                                    </td>
-                                    <td>${new Date(user.created_at).toLocaleDateString('ro-RO')}</td>
-                                    <td>
-                                        <button class="btn btn-warning" style="padding: 0.5rem;" onclick="editUser('${user.id}')">Editează</button>
-                                        ${user.role !== 'admin' ? `<button class="btn btn-danger" style="padding: 0.5rem;" onclick="suspendUser('${user.id}')">Suspendă</button>` : ''}
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                `;
-
-                document.getElementById('usersTableContainer').innerHTML = tableHtml;
-
-            } catch (error) {
-                console.error('Error loading users:', error);
-                document.getElementById('usersTableContainer').innerHTML = '<p style="text-align: center; color: var(--danger);">Eroare la încărcarea utilizatorilor</p>';
-            }
-        }
-
-        // Load payments table
-        async function loadPaymentsTable() {
-            try {
-                const status = document.getElementById('paymentStatus')?.value;
-                const dateFrom = document.getElementById('dateFrom')?.value;
-                const dateTo = document.getElementById('dateTo')?.value;
-
-                let query = supabase
-                    .from('payments')
-                    .select(`
-                        *,
-                        users!inner(name, email)
-                    `)
                     .order('created_at', { ascending: false })
-                    .limit(100);
-
-                if (status) query = query.eq('status', status);
-                if (dateFrom) query = query.gte('created_at', dateFrom);
-                if (dateTo) query = query.lte('created_at', dateTo + 'T23:59:59');
-
-                const { data: payments, error } = await query;
-
-                if (error) throw error;
-
-                const tableHtml = `
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Utilizator</th>
-                                <th>Sumă</th>
-                                <th>Status</th>
-                                <th>Descriere</th>
-                                <th>Data</th>
-                                <th>ID Stripe</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${payments.map(payment => `
-                                <tr>
-                                    <td>
-                                        <div>
-                                            <strong>${payment.users?.name || 'Fără nume'}</strong><br>
-                                            <small>${payment.users?.email}</small>
-                                        </div>
-                                    </td>
-                                    <td>${payment.amount} ${payment.currency}</td>
-                                    <td>
-                                        <span class="status-badge ${
-                                            payment.status === 'succeeded' ? 'status-active' :
-                                            payment.status === 'pending' ? 'status-pending' : 'status-inactive'
-                                        }">
-                                            ${payment.status.toUpperCase()}
-                                        </span>
-                                    </td>
-                                    <td>${payment.description || '-'}</td>
-                                    <td>${new Date(payment.created_at).toLocaleDateString('ro-RO')}</td>
-                                    <td style="font-family: monospace; font-size: 0.8rem;">${payment.stripe_payment_intent_id || '-'}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                `;
-
-                document.getElementById('paymentsTableContainer').innerHTML = tableHtml;
-
+                    .limit(10);
+                
+                const tbody = document.getElementById('recentActivity');
+                if (activities && activities.length > 0) {
+                    tbody.innerHTML = activities.map(activity => `
+                        <tr>
+                            <td>${new Date(activity.created_at).toLocaleDateString('ro-RO')}</td>
+                            <td>${activity.user_id ? 'User' : 'Anonim'}</td>
+                            <td>${activity.event_type || 'Vizitare'}</td>
+                            <td><span class="badge badge-success">Completat</span></td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Nu există activitate recentă</td></tr>';
+                }
             } catch (error) {
-                console.error('Error loading payments:', error);
-                document.getElementById('paymentsTableContainer').innerHTML = '<p style="text-align: center; color: var(--danger);">Eroare la încărcarea plăților</p>';
+                console.error('Error loading activity:', error);
             }
         }
 
-        // Add new content
-        async function addContent() {
+        // Show section
+        async function showSection(section) {
+            // Hide all sections
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active from menu
+            document.querySelectorAll('.sidebar-menu a').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(section).classList.add('active');
+            
+            // Add active to menu
+            event.target.classList.add('active');
+            
+            // Load section data
+            switch(section) {
+                case 'overview':
+                    await loadDashboard();
+                    break;
+                case 'users':
+                    await loadUsers();
+                    break;
+                case 'content':
+                    await loadContent();
+                    break;
+                case 'subscriptions':
+                    await loadSubscriptions();
+                    break;
+                case 'forum':
+                    await loadForum();
+                    break;
+                case 'sessions':
+                    await loadSessions();
+                    break;
+                case 'payments':
+                    await loadPayments();
+                    break;
+                case 'analytics':
+                    await loadAnalytics();
+                    break;
+            }
+        }
+
+        // Load users
+        async function loadUsers() {
+            const { data: users } = await supabase
+                .from('users')
+                .select('*')
+                .order('created_at', { ascending: false });
+            
+            const tbody = document.getElementById('usersTable');
+            if (users && users.length > 0) {
+                tbody.innerHTML = users.map(user => `
+                    <tr>
+                        <td>${user.name || 'N/A'}</td>
+                        <td>${user.email}</td>
+                        <td><span class="badge badge-${user.role === 'admin' ? 'danger' : user.role === 'teacher' ? 'warning' : 'primary'}">${user.role}</span></td>
+                        <td><span class="badge badge-${user.account_type === 'premium' ? 'success' : 'primary'}">${user.account_type}</span></td>
+                        <td>${new Date(user.created_at).toLocaleDateString('ro-RO')}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-sm btn-primary" onclick="editUser('${user.id}')">Editează</button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteUser('${user.id}')">Șterge</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nu există utilizatori</td></tr>';
+            }
+        }
+
+        // Load content
+        async function loadContent() {
+            const { data: content } = await supabase
+                .from('content')
+                .select('*')
+                .order('created_at', { ascending: false });
+            
+            const tbody = document.getElementById('contentTable');
+            if (content && content.length > 0) {
+                tbody.innerHTML = content.map(item => `
+                    <tr>
+                        <td>${item.title || item.type}</td>
+                        <td><span class="badge badge-${item.section === 'premium' ? 'warning' : 'success'}">${item.section}</span></td>
+                        <td>${item.content_type || 'N/A'}</td>
+                        <td>${item.class_level ? `Clasa ${item.class_level}` : 'Toate'}</td>
+                        <td>${new Date(item.created_at).toLocaleDateString('ro-RO')}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-sm btn-primary" onclick="editContent('${item.id}')">Editează</button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteContent('${item.id}')">Șterge</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nu există conținut</td></tr>';
+            }
+        }
+
+        // Load subscriptions
+        async function loadSubscriptions() {
+            // Update stats
+            const { count: activeCount } = await supabase
+                .from('subscriptions')
+                .select('*', { count: 'exact', head: true })
+                .eq('status', 'active');
+            document.getElementById('activeSubscriptions').textContent = activeCount || 0;
+            
+            const { count: canceledCount } = await supabase
+                .from('subscriptions')
+                .select('*', { count: 'exact', head: true })
+                .eq('status', 'canceled')
+                .gte('updated_at', new Date(new Date().setDate(1)).toISOString());
+            document.getElementById('canceledSubscriptions').textContent = canceledCount || 0;
+            
+            // Calculate MRR
+            const { data: activeSubs } = await supabase
+                .from('subscriptions')
+                .select('plan_type')
+                .eq('status', 'active');
+            const mrr = activeSubs ? activeSubs.filter(s => s.plan_type === 'monthly').length * 49 : 0;
+            document.getElementById('mrr').textContent = `${mrr} RON`;
+            
+            // Load subscriptions table
+            const { data: subscriptions } = await supabase
+                .from('subscriptions')
+                .select('*, users(name, email)')
+                .order('created_at', { ascending: false });
+            
+            const tbody = document.getElementById('subscriptionsTable');
+            if (subscriptions && subscriptions.length > 0) {
+                tbody.innerHTML = subscriptions.map(sub => `
+                    <tr>
+                        <td>${sub.users?.name || sub.users?.email || 'N/A'}</td>
+                        <td><span class="badge badge-primary">${sub.plan_type || 'N/A'}</span></td>
+                        <td><span class="badge badge-${sub.status === 'active' ? 'success' : sub.status === 'canceled' ? 'danger' : 'warning'}">${sub.status}</span></td>
+                        <td>${sub.current_period_start ? new Date(sub.current_period_start).toLocaleDateString('ro-RO') : 'N/A'}</td>
+                        <td>${sub.current_period_end ? new Date(sub.current_period_end).toLocaleDateString('ro-RO') : 'N/A'}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-sm btn-primary" onclick="viewSubscription('${sub.id}')">Detalii</button>
+                                ${sub.status === 'active' ? `<button class="btn btn-sm btn-danger" onclick="cancelAdminSubscription('${sub.id}')">Anulează</button>` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nu există abonamente</td></tr>';
+            }
+        }
+
+        // Load forum posts
+        async function loadForum() {
+            const { data: posts } = await supabase
+                .from('forum_posts')
+                .select('*, forum_replies(id)')
+                .order('created_at', { ascending: false });
+            
+            const tbody = document.getElementById('forumTable');
+            if (posts && posts.length > 0) {
+                tbody.innerHTML = posts.map(post => `
+                    <tr>
+                        <td>${post.title}</td>
+                        <td>${post.author_name || 'Anonim'}</td>
+                        <td>${post.views || 0}</td>
+                        <td>${post.forum_replies?.length || 0}</td>
+                        <td>${new Date(post.created_at).toLocaleDateString('ro-RO')}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-sm btn-primary" onclick="viewPost('${post.id}')">Vezi</button>
+                                <button class="btn btn-sm btn-warning" onclick="lockPost('${post.id}')">Blochează</button>
+                                <button class="btn btn-sm btn-danger" onclick="deletePost('${post.id}')">Șterge</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nu există postări</td></tr>';
+            }
+        }
+
+        // Load sessions
+        async function loadSessions() {
+            const { data: sessions } = await supabase
+                .from('live_sessions')
+                .select('*, users!student_id(name, email)')
+                .order('scheduled_at', { ascending: false });
+            
+            const tbody = document.getElementById('sessionsTable');
+            if (sessions && sessions.length > 0) {
+                tbody.innerHTML = sessions.map(session => `
+                    <tr>
+                        <td>${session.users?.name || session.users?.email || 'N/A'}</td>
+                        <td>${session.teacher_id ? 'Asignat' : 'Neasignat'}</td>
+                        <td>${session.scheduled_at ? new Date(session.scheduled_at).toLocaleString('ro-RO') : 'Neprogramat'}</td>
+                        <td>${session.duration} min</td>
+                        <td><span class="badge badge-${session.status === 'completed' ? 'success' : session.status === 'scheduled' ? 'primary' : 'warning'}">${session.status}</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-sm btn-primary" onclick="viewSession('${session.id}')">Detalii</button>
+                                ${session.status === 'scheduled' ? `<button class="btn btn-sm btn-danger" onclick="cancelSession('${session.id}')">Anulează</button>` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nu există sesiuni</td></tr>';
+            }
+        }
+
+        // Load payments
+        async function loadPayments() {
+            const { data: payments } = await supabase
+                .from('payments')
+                .select('*, users(name, email)')
+                .order('created_at', { ascending: false })
+                .limit(50);
+            
+            const tbody = document.getElementById('paymentsTable');
+            if (payments && payments.length > 0) {
+                tbody.innerHTML = payments.map(payment => `
+                    <tr>
+                        <td>${new Date(payment.created_at).toLocaleString('ro-RO')}</td>
+                        <td>${payment.users?.name || payment.users?.email || 'N/A'}</td>
+                        <td>${payment.amount} ${payment.currency}</td>
+                        <td>${payment.description || 'N/A'}</td>
+                        <td><span class="badge badge-${payment.status === 'succeeded' ? 'success' : payment.status === 'failed' ? 'danger' : 'warning'}">${payment.status}</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-sm btn-primary" onclick="viewPayment('${payment.id}')">Detalii</button>
+                                ${payment.status === 'succeeded' ? `<button class="btn btn-sm btn-danger" onclick="refundPayment('${payment.id}')">Rambursează</button>` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nu există plăți</td></tr>';
+            }
+        }
+
+        // Load analytics
+        async function loadAnalytics() {
             try {
-                const section = document.getElementById('contentSection').value;
-                const type = document.getElementById('contentType').value;
-                const title = document.getElementById('contentTitle').value;
-                const url = document.getElementById('contentUrl').value;
-                const description = document.getElementById('contentDescription').value;
+                // Conversion rate
+                const { count: totalUsers } = await supabase
+                    .from('users')
+                    .select('*', { count: 'exact', head: true });
+                const { count: premiumUsers } = await supabase
+                    .from('subscriptions')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('status', 'active');
+                const conversionRate = totalUsers > 0 ? Math.round((premiumUsers / totalUsers) * 100) : 0;
+                document.getElementById('conversionRate').textContent = `${conversionRate}%`;
+                
+                // Retention rate (mock data for now)
+                document.getElementById('retentionRate').textContent = '85%';
+                
+                // Completed lessons
+                const { count: completedLessons } = await supabase
+                    .from('progress')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('completed', true);
+                document.getElementById('completedLessons').textContent = completedLessons || 0;
+                
+                // Completed tests
+                const { count: completedTests } = await supabase
+                    .from('test_results')
+                    .select('*', { count: 'exact', head: true });
+                document.getElementById('completedTests').textContent = completedTests || 0;
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+            }
+        }
 
-                if (!type || !title) {
-                    showToast('Completează toate câmpurile obligatorii', 'error');
-                    return;
+        // Modal functions
+        function showAddUserModal() {
+            document.getElementById('addUserModal').classList.add('active');
+        }
+
+        function showAddContentModal() {
+            document.getElementById('addContentModal').classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Add user
+        async function addUser(event) {
+            event.preventDefault();
+            
+            // This is simplified - in production you'd need proper user creation
+            showToast('Funcționalitate în dezvoltare', 'info');
+            closeModal('addUserModal');
+        }
+
+        // Add content
+        async function addContent(event) {
+            event.preventDefault();
+            
+            const title = document.getElementById('contentTitle').value;
+            const section = document.getElementById('contentSection').value;
+            const type = document.getElementById('contentType').value;
+            const url = document.getElementById('contentUrl').value;
+            const classLevel = document.getElementById('contentClass').value;
+            const description = document.getElementById('contentDescription').value;
+            
+            const { data, error } = await supabase
+                .from('content')
+                .insert([{
+                    title: title,
+                    section: section,
+                    type: type,
+                    content_url: url,
+                    class_level: classLevel ? parseInt(classLevel) : null,
+                    description: description,
+                    content_type: type.includes('lectii') ? 'lesson' : type.includes('exercitii') ? 'exercise' : 'test',
+                    created_by: currentUser.id
+                }]);
+            
+            if (error) {
+                showToast('Eroare la adăugarea conținutului: ' + error.message, 'error');
+            } else {
+                showToast('Conținut adăugat cu succes!', 'success');
+                closeModal('addContentModal');
+                loadContent();
+            }
+        }
+
+        // Delete functions
+        async function deleteUser(userId) {
+            if (confirm('Ești sigur că vrei să ștergi acest utilizator?')) {
+                const { error } = await supabase
+                    .from('users')
+                    .delete()
+                    .eq('id', userId);
+                
+                if (error) {
+                    showToast('Eroare la ștergerea utilizatorului', 'error');
+                } else {
+                    showToast('Utilizator șters cu succes!', 'success');
+                    loadUsers();
                 }
+            }
+        }
 
+        async function deleteContent(contentId) {
+            if (confirm('Ești sigur că vrei să ștergi acest conținut?')) {
                 const { error } = await supabase
                     .from('content')
-                    .insert([{
-                        section,
-                        type,
-                        title,
-                        content_url: url || null,
-                        description,
-                        created_by: currentUser.id,
-                        content_type: type.includes('lectii') ? 'lesson' : 
-                                    type.includes('exercitii') ? 'exercise' : 'test'
-                    }]);
-
-                if (error) throw error;
-
-                showToast('Conținut adăugat cu succes!', 'success');
+                    .delete()
+                    .eq('id', contentId);
                 
-                // Clear form
-                document.getElementById('contentType').value = '';
-                document.getElementById('contentTitle').value = '';
-                document.getElementById('contentUrl').value = '';
-                document.getElementById('contentDescription').value = '';
-                
-                // Reload table
-                loadContentTable();
-
-            } catch (error) {
-                console.error('Error adding content:', error);
-                showToast('Eroare la adăugarea conținutului: ' + error.message, 'error');
-            }
-        }
-
-        // Search users
-        function searchUsers() {
-            const searchTerm = document.getElementById('userSearch').value;
-            loadUsersTable(searchTerm);
-        }
-
-        // Upgrade user to premium
-        async function upgradeUserToPremium() {
-            const email = document.getElementById('upgradeUserEmail').value;
-            if (!email) {
-                showToast('Introdu email-ul utilizatorului', 'error');
-                return;
-            }
-
-            try {
-                // Update user account type
-                const { error: userError } = await supabase
-                    .from('users')
-                    .update({ account_type: 'premium' })
-                    .eq('email', email);
-
-                if (userError) throw userError;
-
-                // Create subscription record
-                const { data: userData } = await supabase
-                    .from('users')
-                    .select('id')
-                    .eq('email', email)
-                    .single();
-
-                if (userData) {
-                    await supabase
-                        .from('subscriptions')
-                        .upsert({
-                            user_id: userData.id,
-                            status: 'active',
-                            plan_type: 'monthly',
-                            current_period_start: new Date().toISOString(),
-                            current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-                        });
+                if (error) {
+                    showToast('Eroare la ștergerea conținutului', 'error');
+                } else {
+                    showToast('Conținut șters cu succes!', 'success');
+                    loadContent();
                 }
-
-                showToast('Utilizatorul a fost promovat la Premium!', 'success');
-                document.getElementById('upgradeUserEmail').value = '';
-                loadStatistics();
-
-            } catch (error) {
-                console.error('Error upgrading user:', error);
-                showToast('Eroare la promovarea utilizatorului: ' + error.message, 'error');
             }
         }
 
-        // Promote user to admin
-        async function promoteUserToAdmin() {
-            const email = document.getElementById('promoteUserEmail').value;
-            if (!email) {
-                showToast('Introdu email-ul utilizatorului', 'error');
-                return;
-            }
-
-            if (!confirm('Ești sigur că vrei să promovezi acest utilizator la Administrator? Aceasta este o acțiune ireversibilă!')) {
-                return;
-            }
-
-            try {
+        async function deletePost(postId) {
+            if (confirm('Ești sigur că vrei să ștergi această postare?')) {
                 const { error } = await supabase
-                    .from('users')
-                    .update({ 
-                        role: 'admin',
-                        account_type: 'premium'
-                    })
-                    .eq('email', email);
-
-                if (error) throw error;
-
-                showToast('Utilizatorul a fost promovat la Administrator!', 'success');
-                document.getElementById('promoteUserEmail').value = '';
-
-            } catch (error) {
-                console.error('Error promoting user:', error);
-                showToast('Eroare la promovarea utilizatorului: ' + error.message, 'error');
+                    .from('forum_posts')
+                    .delete()
+                    .eq('id', postId);
+                
+                if (error) {
+                    showToast('Eroare la ștergerea postării', 'error');
+                } else {
+                    showToast('Postare ștearsă cu succes!', 'success');
+                    loadForum();
+                }
             }
         }
 
-        // Load system info
-        async function loadSystemInfo() {
-            try {
-                const info = {
-                    'Versiune Platform': '1.0.0',
-                    'Ultima Actualizare': new Date().toLocaleDateString('ro-RO'),
-                    'Status Server': 'Online',
-                    'Conexiune Supabase': 'Activă',
-                    'Conexiune Stripe': 'Activă'
-                };
-
-                const infoHtml = Object.entries(info).map(([key, value]) => 
-                    `<div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--light);">
-                        <strong>${key}:</strong> <span>${value}</span>
-                    </div>`
-                ).join('');
-
-                document.getElementById('systemInfo').innerHTML = infoHtml;
-
-            } catch (error) {
-                console.error('Error loading system info:', error);
-                document.getElementById('systemInfo').innerHTML = '<p style="color: var(--danger);">Eroare la încărcarea informațiilor</p>';
-            }
+        // Edit functions (placeholder)
+        function editUser(userId) {
+            showToast('Editare utilizator - în dezvoltare', 'info');
         }
 
-        // Logout function
+        function editContent(contentId) {
+            showToast('Editare conținut - în dezvoltare', 'info');
+        }
+
+        function viewSubscription(subId) {
+            showToast('Detalii abonament - în dezvoltare', 'info');
+        }
+
+        function viewPost(postId) {
+            showToast('Vizualizare postare - în dezvoltare', 'info');
+        }
+
+        function viewSession(sessionId) {
+            showToast('Detalii sesiune - în dezvoltare', 'info');
+        }
+
+        function viewPayment(paymentId) {
+            showToast('Detalii plată - în dezvoltare', 'info');
+        }
+
+        // Logout
         async function logout() {
-            try {
-                await supabase.auth.signOut();
+            const { error } = await supabase.auth.signOut();
+            if (!error) {
                 window.location.href = 'index.html';
-            } catch (error) {
-                console.error('Error logging out:', error);
-                showToast('Eroare la deconectare', 'error');
             }
         }
 
@@ -1052,7 +1328,7 @@
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
             toast.innerHTML = `
-                <span>${type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'}</span>
+                <span>${type === 'success' ? '✓' : type === 'error' ? '✗' : 'ℹ'}</span>
                 <span>${message}</span>
             `;
             document.body.appendChild(toast);
@@ -1062,47 +1338,15 @@
             }, 4000);
         }
 
-        // Placeholder functions for other actions
-        function editContent(id) {
-            showToast('Funcție în dezvoltare: Editare conținut', 'info');
-        }
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', init);
 
-        function deleteContent(id) {
-            if (confirm('Ești sigur că vrei să ștergi acest conținut?')) {
-                showToast('Funcție în dezvoltare: Ștergere conținut', 'info');
+        // Close modals on outside click
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
             }
         }
-
-        function editUser(id) {
-            showToast('Funcție în dezvoltare: Editare utilizator', 'info');
-        }
-
-        function suspendUser(id) {
-            if (confirm('Ești sigur că vrei să suspendezi acest utilizator?')) {
-                showToast('Funcție în dezvoltare: Suspendare utilizator', 'info');
-            }
-        }
-
-        function cleanupSubscriptions() {
-            if (confirm('Această operație va curăța abonamentele expirate. Continui?')) {
-                showToast('Funcție în dezvoltare: Curățare abonamente', 'info');
-            }
-        }
-
-        function syncUserData() {
-            if (confirm('Această operație va sincroniza datele utilizatorilor. Continui?')) {
-                showToast('Funcție în dezvoltare: Sincronizare date', 'info');
-            }
-        }
-
-        function resetTestData() {
-            if (confirm('ATENȚIE: Această operație va șterge toate datele de test. Ești absolut sigur?')) {
-                showToast('Funcție în dezvoltare: Reset date test', 'warning');
-            }
-        }
-
-        // Initialize admin panel on load
-        document.addEventListener('DOMContentLoaded', initAdmin);
     </script>
 </body>
 </html>
