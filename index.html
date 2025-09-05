@@ -713,7 +713,7 @@
                 <div id="userButtons" style="display:none; gap:1rem;">
                     <button id="subscribeBtn" class="btn btn-primary" onclick="showPremiumModal()" style="display:none;">Activează Premium</button>
                     <button id="cancelSubscriptionBtn" class="btn btn-danger" onclick="cancelSubscription()" style="display:none;">Anulează Abonament</button>
-                    <button id="adminBtn" class="btn btn-danger" onclick="showAdminPanel()" style="display:none;">Admin</button>
+                    <button id="adminBtn" class="btn btn-danger" onclick="window.location.href='admin.html'" style="display:none;">Admin</button>
                     <button id="logoutBtn" class="btn btn-secondary" onclick="logout()">Deconectare</button>
                 </div>
             </div>
@@ -956,7 +956,7 @@
                         </div>
                         
                         <div style="background: white; border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-left: 4px solid var(--secondary);">
-                            <h3>🕒 Orare Disponibile</h3>
+                            <h3>🕐 Orare Disponibile</h3>
                             <p>Luni - Vineri: 14:00 - 20:00</p>
                             <p>Sâmbătă: 10:00 - 18:00</p>
                             <p>Duminică: 10:00 - 16:00</p>
@@ -1000,41 +1000,6 @@
                         </div>
                         <h4>Resurse pentru Evaluare Națională</h4>
                         <p>Am adăugat noi teste de antrenament în secțiunea premium. Verificați!</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Admin Section -->
-            <div id="admin-content" class="tab-content">
-                <div class="admin-panel">
-                    <h2>🔧 Panou Administrare</h2>
-                    <p>Doar administratorii pot vedea această secțiune.</p>
-                    
-                    <div class="admin-controls">
-                        <button class="btn btn-primary" onclick="addNewPage()">➕ Adaugă Pagină HTML</button>
-                        <button class="btn btn-secondary" onclick="addNewLink()">🔗 Adaugă Link</button>
-                        <button class="btn btn-danger" onclick="manageUsers()">👥 Gestionează Utilizatori</button>
-                        <button class="btn btn-primary" onclick="viewStatistics()">📊 Statistici</button>
-                    </div>
-                    
-                    <div style="margin-top: 2rem;">
-                        <h3>Adaugă Conținut Nou</h3>
-                        <div class="form-group">
-                            <label class="form-label">URL GitHub (pagină HTML):</label>
-                            <input type="text" class="form-input" id="githubUrl" placeholder="https://raw.githubusercontent.com/username/mate/main/page.html">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Secțiune:</label>
-                            <select class="form-input" id="contentSection">
-                                <option value="free">Gratuit</option>
-                                <option value="premium">Premium</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Categorie:</label>
-                            <input type="text" class="form-input" id="contentCategory" placeholder="ex: clasa5-lectii">
-                        </div>
-                        <button class="btn btn-primary" onclick="saveContent()">Salvează Conținut</button>
                     </div>
                 </div>
             </div>
@@ -1200,17 +1165,30 @@
         let userData = null;
         let isAdmin = false;
         let isPremium = false;
+        let currentSubscription = null;
 
         // Initialize app
         async function initApp() {
+            console.log('Initializing app...');
+            
             // Check URL params for payment success
             const urlParams = new URLSearchParams(window.location.search);
             const isSuccess = urlParams.get('success');
+            const sessionId = urlParams.get('session_id');
             
             if (isSuccess === 'true') {
-                showToast('Plata procesată cu succes! Abonamentul tău este acum activ.', 'success');
+                console.log('Payment success detected, waiting for webhook...');
+                showToast('Plata procesată cu succes! Verificăm abonamentul tău...', 'success');
+                
                 // Clear URL params
                 window.history.replaceState({}, document.title, window.location.pathname);
+                
+                // Wait a bit for webhook to process, then reload subscription
+                setTimeout(async () => {
+                    await checkSubscription();
+                    await updateUI();
+                    showToast('Abonamentul tău Premium este acum activ!', 'success');
+                }, 3000);
             }
             
             // Check if user is logged in
@@ -1234,16 +1212,20 @@
                     userData = null;
                     isAdmin = false;
                     isPremium = false;
+                    currentSubscription = null;
                     updateUI();
                 }
             });
         }
 
-        // Load complete user data - FIXED
+        // Load complete user data - ENHANCED
         async function loadUserData() {
             if (!currentUser) return;
             
             try {
+                console.log('Loading user data for:', currentUser.id);
+                
+                // Try to get user from users table
                 const { data, error } = await supabase
                     .from('users')
                     .select('*')
@@ -1253,7 +1235,7 @@
                 if (data) {
                     userData = data;
                     isAdmin = data.role === 'admin';
-                    isPremium = data.account_type === 'premium';
+                    // Don't rely only on account_type, check subscription too
                     console.log('User data loaded:', data);
                 } else if (error && error.code === 'PGRST116') {
                     // User not in users table yet, create entry
@@ -1274,6 +1256,8 @@
                         userData = newUser;
                         isAdmin = false;
                         isPremium = false;
+                    } else if (createError) {
+                        console.error('Error creating user:', createError);
                     }
                 } else {
                     console.error('Error loading user data:', error);
@@ -1283,55 +1267,86 @@
             }
         }
 
-        // Check subscription status - ENHANCED to fix premium access
+        // Check subscription status - COMPLETELY FIXED
         async function checkSubscription() {
             if (!currentUser) return;
             
             try {
-                const { data, error } = await supabase
+                console.log('Checking subscription for user:', currentUser.id);
+                
+                // Get ALL subscriptions for user (not just active ones)
+                const { data: subscriptions, error } = await supabase
                     .from('subscriptions')
                     .select('*')
                     .eq('user_id', currentUser.id)
-                    .eq('status', 'active')
-                    .gte('current_period_end', new Date().toISOString())
-                    .single();
+                    .order('created_at', { ascending: false });
                 
-                if (data && !error) {
-                    isPremium = true;
-                    console.log('Active subscription found:', data);
+                console.log('All subscriptions:', subscriptions);
+                
+                if (subscriptions && subscriptions.length > 0) {
+                    // Find active subscription
+                    const activeSubscription = subscriptions.find(sub => {
+                        if (sub.status !== 'active') return false;
+                        if (!sub.current_period_end) return false;
+                        
+                        const periodEnd = new Date(sub.current_period_end);
+                        const now = new Date();
+                        return periodEnd > now;
+                    });
                     
-                    // Update user account type if needed
-                    if (userData && userData.account_type !== 'premium') {
-                        await supabase
-                            .from('users')
-                            .update({ account_type: 'premium' })
-                            .eq('id', currentUser.id);
-                        userData.account_type = 'premium';
+                    if (activeSubscription) {
+                        console.log('Active subscription found:', activeSubscription);
+                        isPremium = true;
+                        currentSubscription = activeSubscription;
+                        
+                        // Update user account type if needed
+                        if (userData && userData.account_type !== 'premium') {
+                            const { error: updateError } = await supabase
+                                .from('users')
+                                .update({ account_type: 'premium' })
+                                .eq('id', currentUser.id);
+                            
+                            if (!updateError) {
+                                userData.account_type = 'premium';
+                            }
+                        }
+                        return activeSubscription;
+                    } else {
+                        console.log('No active subscription found');
+                        isPremium = false;
+                        currentSubscription = null;
+                        
+                        // Update user account type to free if needed
+                        if (userData && userData.account_type === 'premium') {
+                            const { error: updateError } = await supabase
+                                .from('users')
+                                .update({ account_type: 'free' })
+                                .eq('id', currentUser.id);
+                            
+                            if (!updateError) {
+                                userData.account_type = 'free';
+                            }
+                        }
                     }
                 } else {
+                    console.log('No subscriptions found for user');
                     isPremium = false;
-                    console.log('No active subscription found');
-                    
-                    // Update user account type to free if needed
-                    if (userData && userData.account_type === 'premium') {
-                        await supabase
-                            .from('users')
-                            .update({ account_type: 'free' })
-                            .eq('id', currentUser.id);
-                        userData.account_type = 'free';
-                    }
+                    currentSubscription = null;
                 }
                 
-                return data;
+                return currentSubscription;
             } catch (error) {
                 console.error('Error checking subscription:', error);
                 isPremium = false;
+                currentSubscription = null;
                 return null;
             }
         }
 
-        // Update UI based on user state - FIXED
+        // Update UI based on user state - ENHANCED
         function updateUI() {
+            console.log('Updating UI - Premium status:', isPremium, 'Admin:', isAdmin);
+            
             // User display elements
             const userDisplay = document.getElementById('userDisplay');
             const authButtons = document.getElementById('authButtons');
@@ -1380,15 +1395,27 @@
                     adminBtn.style.display = 'none';
                 }
                 
-                // Show/hide subscription buttons
-                if (isPremium) {
+                // Show/hide subscription buttons based on premium status
+                if (isPremium && currentSubscription) {
                     subscribeBtn.style.display = 'none';
                     cancelSubscriptionBtn.style.display = 'inline-block';
-                    heroButtons.innerHTML = '<p style="color: var(--secondary); font-weight: 600;">✓ Ai abonament Premium activ!</p>';
+                    
+                    // Update hero section
+                    if (heroButtons) {
+                        const periodEnd = new Date(currentSubscription.current_period_end);
+                        heroButtons.innerHTML = `
+                            <p style="color: var(--secondary); font-weight: 600;">
+                                ✓ Ai abonament Premium activ până la ${periodEnd.toLocaleDateString('ro-RO')}!
+                            </p>
+                        `;
+                    }
                 } else {
                     subscribeBtn.style.display = 'inline-block';
                     cancelSubscriptionBtn.style.display = 'none';
-                    heroButtons.innerHTML = '<button class="btn btn-primary" onclick="showPremiumModal()">Activează Premium</button>';
+                    
+                    if (heroButtons) {
+                        heroButtons.innerHTML = '<button class="btn btn-primary" onclick="showPremiumModal()">Activează Premium</button>';
+                    }
                 }
                 
                 // Hide signup prompt for logged in users
@@ -1440,15 +1467,6 @@
         function showLiveSessionsContent() {
             hideAllTabContent();
             document.getElementById('live-sessions-content').classList.add('active');
-        }
-
-        function showAdminPanel() {
-            if (!isAdmin) {
-                showToast('Nu ai permisiuni de administrator!', 'error');
-                return;
-            }
-            hideAllTabContent();
-            document.getElementById('admin-content').classList.add('active');
         }
 
         function hideAllTabContent() {
@@ -1505,6 +1523,12 @@
             } else {
                 showToast('Conectare reușită!', 'success');
                 closeModal('loginModal');
+                
+                // Reload subscription status after login
+                setTimeout(async () => {
+                    await checkSubscription();
+                    await updateUI();
+                }, 1000);
             }
         }
 
@@ -1544,12 +1568,13 @@
                 userData = null;
                 isAdmin = false;
                 isPremium = false;
+                currentSubscription = null;
                 showHome();
                 updateUI();
             }
         }
 
-        // Stripe checkout - ENHANCED
+        // Stripe checkout - FIXED
         async function startCheckout(plan) {
             if (!currentUser) {
                 showToast('Trebuie să fii conectat pentru a te abona!', 'error');
@@ -1563,6 +1588,8 @@
             }
             
             try {
+                showToast('Redirecționare către plată...', 'info');
+                
                 const { data: { session } } = await supabase.auth.getSession();
                 const response = await supabase.functions.invoke('create-checkout-session', {
                     body: { plan: plan },
@@ -1570,6 +1597,8 @@
                         Authorization: `Bearer ${session.access_token}`
                     }
                 });
+                
+                console.log('Checkout response:', response);
                 
                 if (response.data && response.data.sessionId) {
                     const { error } = await stripe.redirectToCheckout({
@@ -1579,18 +1608,22 @@
                     if (error) {
                         showToast('Eroare la procesarea plății: ' + error.message, 'error');
                     }
+                } else if (response.data && response.data.url) {
+                    // Alternative: direct redirect to Stripe URL
+                    window.location.href = response.data.url;
                 } else {
                     showToast('Eroare la inițierea plății', 'error');
                 }
             } catch (error) {
+                console.error('Checkout error:', error);
                 showToast('Eroare la inițierea plății: ' + error.message, 'error');
             }
         }
 
         async function cancelSubscription() {
-            if (!currentUser) return;
+            if (!currentUser || !currentSubscription) return;
             
-            if (confirm('Ești sigur că vrei să anulezi abonamentul?')) {
+            if (confirm('Ești sigur că vrei să anulezi abonamentul? Vei avea acces până la sfârșitul perioadei curente de facturare.')) {
                 try {
                     const { data: { session } } = await supabase.auth.getSession();
                     const response = await supabase.functions.invoke('cancel-subscription', {
@@ -1600,12 +1633,16 @@
                     });
                     
                     if (response.data && response.data.success) {
-                        showToast('Abonament anulat cu succes!', 'success');
-                        isPremium = false;
-                        if (userData) {
-                            userData.account_type = 'free';
-                        }
-                        updateUI();
+                        showToast('Abonament anulat cu succes! Vei avea acces până la sfârșitul perioadei curente.', 'success');
+                        
+                        // Update local state
+                        currentSubscription.cancel_at_period_end = true;
+                        
+                        // Reload subscription status
+                        setTimeout(async () => {
+                            await checkSubscription();
+                            await updateUI();
+                        }, 2000);
                     } else {
                         showToast('Eroare la anularea abonamentului', 'error');
                     }
@@ -1634,13 +1671,23 @@
             await startCheckout('live_session');
         }
 
-        // Content loading - FIXED to properly check premium access
+        // Content loading - FIXED to properly check premium
         async function loadContent(section, type) {
+            console.log(`Loading content - Section: ${section}, Type: ${type}, Premium: ${isPremium}`);
+            
             // Check premium access for premium content
-            if (section === 'premium' && !isPremium) {
-                showToast('Trebuie să ai abonament premium pentru a accesa acest conținut!', 'error');
-                showPremiumModal();
-                return;
+            if (section === 'premium') {
+                if (!currentUser) {
+                    showToast('Trebuie să fii conectat pentru a accesa conținutul premium!', 'error');
+                    showLoginModal();
+                    return;
+                }
+                
+                if (!isPremium) {
+                    showToast('Trebuie să ai abonament premium pentru a accesa acest conținut!', 'error');
+                    showPremiumModal();
+                    return;
+                }
             }
             
             const dynamicContent = document.getElementById('dynamic-content');
@@ -1758,84 +1805,6 @@
 
         function nextExercise() {
             loadContent('free', 'clasa5-exercitii');
-        }
-
-        // Admin functions
-        async function addNewPage() {
-            const url = prompt('Introdu URL-ul paginii HTML din GitHub:');
-            if (url) {
-                const section = prompt('Secțiune (free/premium):');
-                const type = prompt('Tip conținut (ex: clasa5-lectii):');
-                
-                if (section && type) {
-                    const { data, error } = await supabase
-                        .from('content')
-                        .insert([
-                            { 
-                                section: section, 
-                                type: type, 
-                                content_url: url,
-                                created_by: currentUser.id,
-                                title: type.replace('-', ' ').toUpperCase(),
-                                content_type: type.includes('lectii') ? 'lesson' : type.includes('exercitii') ? 'exercise' : 'test'
-                            }
-                        ]);
-                    
-                    if (error) {
-                        showToast('Eroare la adăugarea conținutului: ' + error.message, 'error');
-                    } else {
-                        showToast('Conținut adăugat cu succes!', 'success');
-                    }
-                }
-            }
-        }
-
-        function addNewLink() {
-            const link = prompt('Introdu link-ul:');
-            const title = prompt('Titlu link:');
-            
-            if (link && title) {
-                showToast('Link adăugat: ' + title, 'success');
-            }
-        }
-
-        function manageUsers() {
-            showToast('Funcție în dezvoltare...', 'info');
-        }
-
-        function viewStatistics() {
-            showToast('Statistici: 150 utilizatori activi, 45 abonați premium', 'info');
-        }
-
-        async function saveContent() {
-            const url = document.getElementById('githubUrl').value;
-            const section = document.getElementById('contentSection').value;
-            const category = document.getElementById('contentCategory').value;
-            
-            if (url && category) {
-                const { data, error } = await supabase
-                    .from('content')
-                    .insert([
-                        {
-                            section: section,
-                            type: category,
-                            content_url: url,
-                            created_by: currentUser.id,
-                            title: category.replace('-', ' ').toUpperCase(),
-                            content_type: category.includes('lectii') ? 'lesson' : category.includes('exercitii') ? 'exercise' : 'test'
-                        }
-                    ]);
-                
-                if (error) {
-                    showToast('Eroare: ' + error.message, 'error');
-                } else {
-                    showToast('Conținut salvat cu succes!', 'success');
-                    document.getElementById('githubUrl').value = '';
-                    document.getElementById('contentCategory').value = '';
-                }
-            } else {
-                showToast('Completează toate câmpurile!', 'error');
-            }
         }
 
         // Forum functions
